@@ -1,8 +1,8 @@
 {
-  "name": "aquarius-rrhh-demo",
+  "name": "aquarius-rrhh",
   "private": true,
-  "version": "2.0.0",
-  "description": "Aquarius Consulting SAC - Sistema RRHH (Demo Interactiva)",
+  "version": "3.0.0",
+  "description": "Aquarius Consulting SAC - Sistema Integral de Gestión RRHH",
   "type": "module",
   "scripts": {
     "dev": "vite",
