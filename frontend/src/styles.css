@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-5 py-2.5 bg-gradient-to-r from-blue2 to-navy text-white rounded-xl font-semibold text-sm transition-all hover:shadow-lg hover:-translate-y-0.5;
+  }
+  .btn-secondary {
+    @apply px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium text-sm transition-all hover:bg-slate-200;
+  }
+  .btn-danger {
+    @apply px-4 py-2 bg-red-500 text-white rounded-lg font-semibold text-sm transition-all hover:bg-red-600;
+  }
+  .btn-success {
+    @apply px-4 py-2 bg-emerald-500 text-white rounded-lg font-semibold text-sm transition-all hover:bg-emerald-600;
+  }
+  .card {
+    @apply bg-white rounded-2xl p-6 shadow-sm border border-slate-100;
+  }
+  .input-field {
+    @apply w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-slate-200 text-sm outline-none focus:border-blue2 focus:ring-1 focus:ring-blue2/20 transition-all;
+  }
+  .select-field {
+    @apply w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-slate-200 text-sm outline-none bg-white focus:border-blue2 focus:ring-1 focus:ring-blue2/20 transition-all;
+  }
+  .label-field {
+    @apply text-[11px] font-bold text-slate-400 mb-1 block uppercase tracking-wider;
+  }
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer;
+  }
+  .sidebar-item-active {
+    @apply bg-cyan/15 text-cyan font-semibold;
+  }
+  .sidebar-item-inactive {
+    @apply text-white/50 hover:text-white/80 hover:bg-white/5;
+  }
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+}
