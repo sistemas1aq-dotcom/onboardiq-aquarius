@@ -1,1 +1,8 @@
-https://onboardiq-api-production-3f30.up.railway.app
+
+ONBOARDIQ 
+Backend: https://onboardiq-api-production-3f30.up.railway.app
+Frontend: https://aquariusrecursos.vercel.app
+
+BOLTWAREHOUSE
+backend: https://backend-eight-delta-20.vercel.app
+frontend: https://wms-ftontend-alpha.vercel.app
