@@ -142,7 +142,9 @@
       "Bash(git commit -m ':*)",
       "Bash(vercel --prod --yes)",
       "Bash(python update_legajos_neon.py)",
-      "Bash(vercel env:*)"
+      "Bash(vercel env:*)",
+      "Bash(git commit:*)",
+      "Bash(VERCEL_ANALYZE_BUILD_OUTPUT=1 vercel --prod --yes)"
     ]
   }
 }
