@@ -50,3 +50,5 @@ uploads/
 
 # ZIP
 *.zip
+
+.vercel

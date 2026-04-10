@@ -1,10 +1,5 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
-from dotenv import load_dotenv
-import os
-
-# Cargar .env explicitamente con override para que funcione siempre
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"), override=True)
 
 
 class Settings(BaseSettings):
@@ -13,12 +8,11 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Database
+    DATABASE_URL: str = ""
     DB_SERVER: str = "localhost"
     DB_NAME: str = "AquariusRRHH"
     DB_USER: str = ""
     DB_PASSWORD: str = ""
-    DB_DRIVER: str = "ODBC Driver 17 for SQL Server"
-    DB_TRUSTED_CONNECTION: bool = True
 
     # JWT
     SECRET_KEY: str = "aquarius-rrhh-secret-key-2026-change-in-production"
@@ -34,22 +28,19 @@ class Settings(BaseSettings):
     AI_MODEL_ANALYSIS: str = "claude-sonnet-4-6-20250514"
 
     @property
-    def DATABASE_URL(self) -> str:
-        if self.DB_TRUSTED_CONNECTION:
+    def database_url(self) -> str:
+        """Retorna la URL de conexion a PostgreSQL.
+        Si DATABASE_URL esta seteada (Neon/Vercel), la usa directamente.
+        Sino, construye la URL desde las variables individuales (dev local).
+        """
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+        if self.DB_USER and self.DB_PASSWORD:
             return (
-                f"mssql+pyodbc://{self.DB_SERVER}/{self.DB_NAME}"
-                f"?driver={self.DB_DRIVER.replace(' ', '+')}"
-                f"&Trusted_Connection=yes"
-                f"&Encrypt=yes"
-                f"&TrustServerCertificate=yes"
+                f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
+                f"@{self.DB_SERVER}/{self.DB_NAME}"
             )
-        return (
-            f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASSWORD}"
-            f"@{self.DB_SERVER}/{self.DB_NAME}"
-            f"?driver={self.DB_DRIVER.replace(' ', '+')}"
-            f"&Encrypt=yes"
-            f"&TrustServerCertificate=yes"
-        )
+        return f"postgresql://{self.DB_SERVER}/{self.DB_NAME}"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
