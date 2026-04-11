@@ -51,6 +51,21 @@ export const ADMIN_ROUTES: Routes = [
         path: 'configuracion',
         loadComponent: () =>
           import('./configuracion/configuracion.component').then((m) => m.ConfiguracionComponent)
+      },
+      {
+        path: 'carga-masiva',
+        loadComponent: () =>
+          import('./carga-masiva/carga-masiva.component').then((m) => m.CargaMasivaComponent)
+      },
+      {
+        path: 'anuncios',
+        loadComponent: () =>
+          import('./anuncios/anuncios.component').then((m) => m.AnunciosComponent)
+      },
+      {
+        path: 'comunicaciones',
+        loadComponent: () =>
+          import('./comunicaciones/comunicaciones.component').then((m) => m.ComunicacionesComponent)
       }
     ]
   }

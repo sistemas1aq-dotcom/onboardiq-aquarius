@@ -12,3 +12,6 @@ from .capacitacion import Capacitacion, CapacitacionTrabajador
 from .auditoria import Auditoria
 from .configuracion import Configuracion
 from .ia_analisis import IAAnalisis
+from .anuncio import Anuncio
+from .comunicacion import ComunicacionLog
+from .festividad import Festividad

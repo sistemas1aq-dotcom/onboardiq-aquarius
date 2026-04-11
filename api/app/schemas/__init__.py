@@ -9,3 +9,5 @@ from .bancario import *
 from .pensionario import *
 from .capacitacion import *
 from .ia import *
+from .anuncio import *
+from .comunicacion import *

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
-from .routers import auth, dashboard, postulantes, evaluaciones, documentos, entrevistas, legajo, embudo, usuarios, seguridad, configuracion, ia, portal
+from .routers import auth, dashboard, postulantes, evaluaciones, documentos, entrevistas, legajo, embudo, usuarios, seguridad, configuracion, ia, portal, carga_masiva, anuncios, comunicaciones
 
 settings = get_settings()
 
@@ -34,6 +34,9 @@ app.include_router(seguridad.router, prefix="/api/seguridad", tags=["Seguridad"]
 app.include_router(configuracion.router, prefix="/api/configuracion", tags=["Configuracion"])
 app.include_router(ia.router, prefix="/api/ia", tags=["IA"])
 app.include_router(portal.router, prefix="/api/portal", tags=["Portal"])
+app.include_router(carga_masiva.router, prefix="/api/carga-masiva", tags=["Carga Masiva"])
+app.include_router(anuncios.router, prefix="/api/anuncios", tags=["Anuncios"])
+app.include_router(comunicaciones.router, prefix="/api/comunicaciones", tags=["Comunicaciones"])
 
 
 @app.get("/api/health")

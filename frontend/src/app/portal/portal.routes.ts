@@ -61,6 +61,11 @@ export const PORTAL_ROUTES: Routes = [
         path: 'capacitaciones',
         loadComponent: () =>
           import('./capacitaciones/capacitaciones.component').then((m) => m.CapacitacionesComponent)
+      },
+      {
+        path: 'anuncios',
+        loadComponent: () =>
+          import('./anuncios/anuncios-portal.component').then((m) => m.AnunciosPortalComponent)
       }
     ]
   }

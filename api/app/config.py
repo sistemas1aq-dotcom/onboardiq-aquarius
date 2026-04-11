@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://localhost:4200,http://localhost:8000,https://aquarius-rrhh.vercel.app"
 
+    # Email (Gmail SMTP)
+    GMAIL_USER: str = ""
+    GMAIL_APP_PASSWORD: str = ""
+    DEFAULT_PASSWORD: str = "Aquarius2026"
+
     # AI
     ANTHROPIC_API_KEY: str = ""
     AI_MODEL_CHAT: str = "claude-haiku-4-5-20251001"
