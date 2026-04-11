@@ -11,22 +11,35 @@ settings = get_settings()
 
 def send_email(to: str, subject: str, html_body: str) -> bool:
     """Envia un email individual via Gmail SMTP."""
+    if not settings.GMAIL_USER or not settings.GMAIL_APP_PASSWORD:
+        logger.warning("Gmail no configurado. Email no enviado.")
+        return False
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = settings.GMAIL_USER
+        msg["From"] = f"OnboardIQ Aquarius <{settings.GMAIL_USER}>"
         msg["To"] = to
         msg.attach(MIMEText(html_body, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()
-            server.login(settings.GMAIL_USER, settings.GMAIL_APP_PASSWORD)
-            server.sendmail(settings.GMAIL_USER, to, msg.as_string())
+        logger.info(f"Conectando a Gmail SMTP para enviar a {to}...")
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(settings.GMAIL_USER, settings.GMAIL_APP_PASSWORD)
+        server.sendmail(settings.GMAIL_USER, to, msg.as_string())
+        server.quit()
 
-        logger.info(f"Email enviado a {to}: {subject}")
+        logger.info(f"Email enviado exitosamente a {to}: {subject}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"Error de autenticacion Gmail: {e}")
+        return False
+    except smtplib.SMTPException as e:
+        logger.error(f"Error SMTP enviando a {to}: {e}")
+        return False
     except Exception as e:
-        logger.error(f"Error enviando email a {to}: {e}")
+        logger.error(f"Error general enviando email a {to}: {type(e).__name__}: {e}")
         return False
 
 
@@ -34,24 +47,30 @@ def send_bulk_email(recipients: list[str], subject: str, html_body: str) -> dict
     """Envia email a multiples destinatarios. Retorna conteo de enviados/fallidos."""
     sent = 0
     failed = 0
+    if not settings.GMAIL_USER or not settings.GMAIL_APP_PASSWORD:
+        return {"sent": 0, "failed": len(recipients), "error": "Gmail no configurado"}
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()
-            server.login(settings.GMAIL_USER, settings.GMAIL_APP_PASSWORD)
-            for recipient in recipients:
-                try:
-                    msg = MIMEMultipart("alternative")
-                    msg["Subject"] = subject
-                    msg["From"] = settings.GMAIL_USER
-                    msg["To"] = recipient
-                    msg.attach(MIMEText(html_body, "html"))
-                    server.sendmail(settings.GMAIL_USER, recipient, msg.as_string())
-                    sent += 1
-                except Exception as e:
-                    logger.error(f"Error enviando email a {recipient}: {e}")
-                    failed += 1
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(settings.GMAIL_USER, settings.GMAIL_APP_PASSWORD)
+        for recipient in recipients:
+            try:
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = subject
+                msg["From"] = f"OnboardIQ Aquarius <{settings.GMAIL_USER}>"
+                msg["To"] = recipient
+                msg.attach(MIMEText(html_body, "html"))
+                server.sendmail(settings.GMAIL_USER, recipient, msg.as_string())
+                sent += 1
+                logger.info(f"Email enviado a {recipient}")
+            except Exception as e:
+                logger.error(f"Error enviando email a {recipient}: {e}")
+                failed += 1
+        server.quit()
     except Exception as e:
-        logger.error(f"Error conectando a SMTP: {e}")
+        logger.error(f"Error conectando a SMTP: {type(e).__name__}: {e}")
         failed = len(recipients) - sent
 
     return {"sent": sent, "failed": failed}
