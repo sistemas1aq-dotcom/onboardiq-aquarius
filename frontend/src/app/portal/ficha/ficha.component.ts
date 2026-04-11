@@ -14,14 +14,12 @@ interface ExperienciaLaboral {
 
 interface Idioma {
   idioma: string;
-  nivel_lectura: string;
-  nivel_escritura: string;
-  nivel_conversacion: string;
+  nivel: string;
 }
 
 interface Habilidad {
   nombre: string;
-  porcentaje: number;
+  nivel: number;
 }
 
 interface Referencia {
@@ -274,26 +272,14 @@ interface FichaData {
                   <span class="text-sm font-medium text-gray-600">Idioma {{ i + 1 }}</span>
                   <button (click)="removeIdioma(i)" class="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Idioma</label>
                     <input type="text" [(ngModel)]="idioma.idioma" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel Lectura</label>
-                    <select [(ngModel)]="idioma.nivel_lectura" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
-                      <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel Escritura</label>
-                    <select [(ngModel)]="idioma.nivel_escritura" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
-                      <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel Conversacion</label>
-                    <select [(ngModel)]="idioma.nivel_conversacion" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel</label>
+                    <select [(ngModel)]="idioma.nivel" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
                       <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
                     </select>
                   </div>
@@ -318,8 +304,8 @@ interface FichaData {
                   <input type="text" [(ngModel)]="hab.nombre" placeholder="Ej: Excel, Word, SAP" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div class="w-40">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel ({{ hab.porcentaje }}%)</label>
-                  <input type="range" [(ngModel)]="hab.porcentaje" min="0" max="100" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"/>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel ({{ hab.nivel }}%)</label>
+                  <input type="range" [(ngModel)]="hab.nivel" min="0" max="100" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"/>
                 </div>
                 <button (click)="removeHabilidad(i)" class="text-red-500 hover:text-red-700 text-sm mt-5">Eliminar</button>
               </div>
@@ -470,10 +456,10 @@ export class FichaComponent implements OnInit {
       next: (res) => {
         this.ficha = {
           ...res,
-          experiencia_laboral: res.experiencia_laboral ?? [],
-          idiomas: res.idiomas ?? [],
-          habilidades: res.habilidades ?? [],
-          referencias: res.referencias ?? [],
+          experiencia_laboral: this.parseJson(res.experiencia_laboral),
+          idiomas: this.parseJson(res.idiomas),
+          habilidades: this.parseJson(res.habilidades),
+          referencias: this.parseJson(res.referencias),
         };
         this.loading = false;
       },
@@ -484,12 +470,27 @@ export class FichaComponent implements OnInit {
     });
   }
 
+  private parseJson(val: any): any[] {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string' && val.trim()) {
+      try { return JSON.parse(val); } catch { return []; }
+    }
+    return [];
+  }
+
   guardar(): void {
     if (!this.ficha) return;
     this.saving = true;
     this.successMsg = '';
     this.errorMsg = '';
-    this.http.put(`${this.apiUrl}/portal/mi-ficha`, this.ficha).subscribe({
+    const payload = {
+      ...this.ficha,
+      experiencia_laboral: JSON.stringify(this.ficha.experiencia_laboral ?? []),
+      idiomas: JSON.stringify(this.ficha.idiomas ?? []),
+      habilidades: JSON.stringify(this.ficha.habilidades ?? []),
+      referencias: JSON.stringify(this.ficha.referencias ?? []),
+    };
+    this.http.put(`${this.apiUrl}/portal/mi-ficha`, payload).subscribe({
       next: () => {
         this.saving = false;
         this.successMsg = 'Ficha guardada exitosamente.';
@@ -511,14 +512,14 @@ export class FichaComponent implements OnInit {
   }
 
   addIdioma(): void {
-    this.ficha?.idiomas.push({ idioma: '', nivel_lectura: 'Basico', nivel_escritura: 'Basico', nivel_conversacion: 'Basico' });
+    this.ficha?.idiomas.push({ idioma: '', nivel: 'Basico' });
   }
   removeIdioma(i: number): void {
     this.ficha?.idiomas.splice(i, 1);
   }
 
   addHabilidad(): void {
-    this.ficha?.habilidades.push({ nombre: '', porcentaje: 50 });
+    this.ficha?.habilidades.push({ nombre: '', nivel: 50 });
   }
   removeHabilidad(i: number): void {
     this.ficha?.habilidades.splice(i, 1);
