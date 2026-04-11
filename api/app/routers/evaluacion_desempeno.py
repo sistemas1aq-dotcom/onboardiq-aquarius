@@ -151,7 +151,7 @@ def crear_evaluacion(
     """Crea una evaluacion de desempeno."""
     evaluacion = EvaluacionDesempeno(
         trabajador_id=data.trabajador_id,
-        evaluador_id=data.evaluador_id,
+        evaluador_id=data.evaluador_id or current_user.id,
         periodo=data.periodo,
         tipo=data.tipo,
         fecha_evaluacion=data.fecha_evaluacion or date.today(),

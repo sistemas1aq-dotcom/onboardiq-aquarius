@@ -47,9 +47,9 @@ class EvalDetalleResponse(BaseModel):
 
 class EvalDesempenoCreate(BaseModel):
     trabajador_id: int
-    evaluador_id: int
+    evaluador_id: Optional[int] = None
     periodo: str
-    tipo: str  # trimestral, semestral, anual
+    tipo: str = "semestral"  # trimestral, semestral, anual
     fecha_evaluacion: Optional[date] = None
     comentarios_generales: Optional[str] = None
 
