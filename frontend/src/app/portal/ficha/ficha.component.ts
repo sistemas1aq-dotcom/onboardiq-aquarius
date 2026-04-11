@@ -30,6 +30,13 @@ interface Referencia {
   relacion: string;
 }
 
+interface EstudioAdicional {
+  tipo: string;
+  nombre: string;
+  institucion: string;
+  anio: number | null;
+}
+
 interface FichaData {
   // Datos Personales
   nombres: string;
@@ -51,6 +58,7 @@ interface FichaData {
   universidad: string;
   anio_egreso: number | null;
   colegiatura: string;
+  estudios_adicionales: EstudioAdicional[];
   // Experiencia
   experiencia_laboral: ExperienciaLaboral[];
   // Idiomas
@@ -153,7 +161,7 @@ interface FichaData {
                   </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Genero</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Género</label>
                   <select [(ngModel)]="ficha.genero" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
                     <option value="">Seleccionar...</option>
                     <option value="Masculino">Masculino</option>
@@ -162,11 +170,11 @@ interface FichaData {
                   </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Telefono</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono</label>
                   <input type="text" [(ngModel)]="ficha.telefono" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Direccion</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Dirección</label>
                   <input type="text" [(ngModel)]="ficha.direccion" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div>
@@ -182,18 +190,18 @@ interface FichaData {
                   <input type="text" [(ngModel)]="ficha.departamento" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Telefono de Emergencia</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono de Emergencia</label>
                   <input type="text" [(ngModel)]="ficha.telefono_emergencia" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
               </div>
             </div>
 
-            <!-- Tab 1: Formacion -->
+            <!-- Tab 1: Formación -->
             <div *ngIf="activeTab === 1">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Formacion Academica</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Formación Académica</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Grado de Instruccion</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Grado de Instrucción</label>
                   <select [(ngModel)]="ficha.grado_instruccion" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
                     <option value="">Seleccionar...</option>
                     <option *ngFor="let g of gradosInstruccion" [value]="g">{{ g }}</option>
@@ -208,12 +216,52 @@ interface FichaData {
                   <input type="text" [(ngModel)]="ficha.universidad" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Anio de Egreso</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Año de Egreso</label>
                   <input type="number" [(ngModel)]="ficha.anio_egreso" min="1950" max="2030" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-1.5">Colegiatura (N. de colegiado si aplica)</label>
                   <input type="text" [(ngModel)]="ficha.colegiatura" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+              </div>
+
+              <!-- Estudios Adicionales -->
+              <div class="mt-8">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-semibold text-gray-900">Estudios Adicionales</h3>
+                  <button (click)="addEstudio()" class="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
+                    + Agregar
+                  </button>
+                </div>
+                <div *ngFor="let est of ficha.estudios_adicionales; let i = index" class="border border-gray-200 rounded-lg p-4 mb-4">
+                  <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm font-medium text-gray-600">Estudio {{ i + 1 }}</span>
+                    <button (click)="removeEstudio(i)" class="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipo</label>
+                      <select [(ngModel)]="est.tipo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                        <option value="">Seleccionar...</option>
+                        <option *ngFor="let t of tiposEstudio" [value]="t">{{ t }}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Nombre</label>
+                      <input type="text" [(ngModel)]="est.nombre" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Institución</label>
+                      <input type="text" [(ngModel)]="est.institucion" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Año</label>
+                      <input type="number" [(ngModel)]="est.anio" min="1950" max="2030" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="ficha.estudios_adicionales.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                  No se han registrado estudios adicionales. Haga clic en "+ Agregar" para comenzar.
                 </div>
               </div>
             </div>
@@ -259,65 +307,71 @@ interface FichaData {
               </div>
             </div>
 
-            <!-- Tab 3: Idiomas -->
+            <!-- Tab 3: Idiomas y Habilidades -->
             <div *ngIf="activeTab === 3">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Idiomas</h3>
-                <button (click)="addIdioma()" class="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
-                  + Agregar
-                </button>
-              </div>
-              <div *ngFor="let idioma of ficha.idiomas; let i = index" class="border border-gray-200 rounded-lg p-4 mb-4">
-                <div class="flex justify-between items-center mb-3">
-                  <span class="text-sm font-medium text-gray-600">Idioma {{ i + 1 }}</span>
-                  <button (click)="removeIdioma(i)" class="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+              <!-- Idiomas Section -->
+              <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-semibold text-gray-900">Idiomas</h3>
+                  <button (click)="addIdioma()" class="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
+                    + Agregar
+                  </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Idioma</label>
-                    <input type="text" [(ngModel)]="idioma.idioma" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                <div *ngFor="let idioma of ficha.idiomas; let i = index" class="border border-gray-200 rounded-lg p-4 mb-4">
+                  <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm font-medium text-gray-600">Idioma {{ i + 1 }}</span>
+                    <button (click)="removeIdioma(i)" class="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
                   </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel</label>
-                    <select [(ngModel)]="idioma.nivel" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
-                      <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
-                    </select>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Idioma</label>
+                      <input type="text" [(ngModel)]="idioma.idioma" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel</label>
+                      <select [(ngModel)]="idioma.nivel" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                        <option *ngFor="let n of niveles" [value]="n">{{ n }}</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
+                <div *ngIf="ficha.idiomas.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                  No se han registrado idiomas.
+                </div>
               </div>
-              <div *ngIf="ficha.idiomas.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                No se han registrado idiomas.
+
+              <!-- Habilidades Section -->
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-semibold text-gray-900">Habilidades Informáticas</h3>
+                  <button (click)="addHabilidad()" class="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
+                    + Agregar
+                  </button>
+                </div>
+                <div *ngFor="let hab of ficha.habilidades; let i = index" class="flex items-center gap-4 mb-4 bg-gray-50 rounded-lg p-4">
+                  <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Herramienta / Software</label>
+                    <input type="text" [(ngModel)]="hab.nombre" placeholder="Ej: Excel, Word, SAP" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                  </div>
+                  <div class="w-40">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel ({{ hab.nivel }}%)</label>
+                    <input type="range" [(ngModel)]="hab.nivel" min="0" max="100" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"/>
+                  </div>
+                  <button (click)="removeHabilidad(i)" class="text-red-500 hover:text-red-700 text-sm mt-5">Eliminar</button>
+                </div>
+                <div *ngIf="ficha.habilidades.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                  No se han registrado habilidades.
+                </div>
               </div>
             </div>
 
-            <!-- Tab 4: Habilidades -->
+            <!-- Tab 4: Referencias -->
             <div *ngIf="activeTab === 4">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Habilidades Informaticas</h3>
-                <button (click)="addHabilidad()" class="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
-                  + Agregar
-                </button>
-              </div>
-              <div *ngFor="let hab of ficha.habilidades; let i = index" class="flex items-center gap-4 mb-4 bg-gray-50 rounded-lg p-4">
-                <div class="flex-1">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Herramienta / Software</label>
-                  <input type="text" [(ngModel)]="hab.nombre" placeholder="Ej: Excel, Word, SAP" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Referencias Personales</h3>
+                  <p class="text-sm text-gray-500 mt-1">Mínimo 2 referencias requeridas</p>
                 </div>
-                <div class="w-40">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Nivel ({{ hab.nivel }}%)</label>
-                  <input type="range" [(ngModel)]="hab.nivel" min="0" max="100" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"/>
-                </div>
-                <button (click)="removeHabilidad(i)" class="text-red-500 hover:text-red-700 text-sm mt-5">Eliminar</button>
-              </div>
-              <div *ngIf="ficha.habilidades.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                No se han registrado habilidades.
-              </div>
-            </div>
-
-            <!-- Tab 5: Referencias -->
-            <div *ngIf="activeTab === 5">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Referencias Personales</h3>
                 <button (click)="addReferencia()" class="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
                   + Agregar
                 </button>
@@ -325,7 +379,7 @@ interface FichaData {
               <div *ngFor="let ref of ficha.referencias; let i = index" class="border border-gray-200 rounded-lg p-4 mb-4">
                 <div class="flex justify-between items-center mb-3">
                   <span class="text-sm font-medium text-gray-600">Referencia {{ i + 1 }}</span>
-                  <button (click)="removeReferencia(i)" class="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+                  <button *ngIf="i >= 2" (click)="removeReferencia(i)" class="text-red-500 hover:text-red-700 text-sm">Eliminar</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
@@ -341,11 +395,11 @@ interface FichaData {
                     <input type="text" [(ngModel)]="ref.cargo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Telefono</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono</label>
                     <input type="text" [(ngModel)]="ref.telefono" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Relacion</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Relación</label>
                     <select [(ngModel)]="ref.relacion" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
                       <option value="">Seleccionar...</option>
                       <option *ngFor="let r of relaciones" [value]="r">{{ r }}</option>
@@ -353,18 +407,16 @@ interface FichaData {
                   </div>
                 </div>
               </div>
-              <div *ngIf="ficha.referencias.length === 0" class="text-center py-8 text-gray-400 text-sm">
-                No se han registrado referencias.
-              </div>
             </div>
 
-            <!-- Tab 6: Expectativas -->
-            <div *ngIf="activeTab === 6">
+            <!-- Tab 5: Expectativas -->
+            <div *ngIf="activeTab === 5">
               <h3 class="text-lg font-semibold text-gray-900 mb-4">Expectativas Laborales</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Pretension Salarial (S/.)</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Pretensión Salarial Bruta (S/. Soles)</label>
                   <input type="number" [(ngModel)]="ficha.pretension_salarial" min="0" step="100" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                  <p class="text-xs text-gray-500 mt-1">Indique el monto mensual bruto (antes de descuentos)</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1.5">Disponibilidad</label>
@@ -374,7 +426,7 @@ interface FichaData {
                     <option value="1 semana">1 semana</option>
                     <option value="2 semanas">2 semanas</option>
                     <option value="1 mes">1 mes</option>
-                    <option value="Mas de 1 mes">Mas de 1 mes</option>
+                    <option value="Mas de 1 mes">Más de 1 mes</option>
                   </select>
                 </div>
                 <div>
@@ -383,16 +435,16 @@ interface FichaData {
                     <option value="">Seleccionar...</option>
                     <option value="Presencial">Presencial</option>
                     <option value="Remoto">Remoto</option>
-                    <option value="Hibrido">Hibrido</option>
+                    <option value="Híbrido">Híbrido</option>
                     <option value="Indiferente">Indiferente</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <!-- Tab 7: Salud -->
-            <div *ngIf="activeTab === 7">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Informacion de Salud</h3>
+            <!-- Tab 6: Salud -->
+            <div *ngIf="activeTab === 6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Información de Salud</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipo de Sangre</label>
@@ -406,7 +458,7 @@ interface FichaData {
                   <select [(ngModel)]="ficha.discapacidad" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
                     <option value="">Seleccionar...</option>
                     <option value="Ninguna">Ninguna</option>
-                    <option value="Fisica">Fisica</option>
+                    <option value="Física">Física</option>
                     <option value="Sensorial">Sensorial</option>
                     <option value="Intelectual">Intelectual</option>
                     <option value="Mental">Mental</option>
@@ -417,8 +469,8 @@ interface FichaData {
                   <textarea [(ngModel)]="ficha.alergias" rows="2" placeholder="Describa sus alergias si las tiene" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-y"></textarea>
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Condiciones Medicas</label>
-                  <textarea [(ngModel)]="ficha.condiciones_medicas" rows="2" placeholder="Describa condiciones medicas relevantes" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-y"></textarea>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Condiciones Médicas</label>
+                  <textarea [(ngModel)]="ficha.condiciones_medicas" rows="2" placeholder="Describa condiciones médicas relevantes" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-y"></textarea>
                 </div>
               </div>
             </div>
@@ -439,12 +491,13 @@ export class FichaComponent implements OnInit {
   errorMsg = '';
   activeTab = 0;
 
-  tabs = ['Datos Personales', 'Formacion', 'Experiencia Laboral', 'Idiomas', 'Habilidades', 'Referencias', 'Expectativas', 'Salud'];
+  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas', 'Salud'];
   estadosCiviles = ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Viudo/a', 'Conviviente'];
-  gradosInstruccion = ['Secundaria Completa', 'Tecnico', 'Universitario Incompleto', 'Bachiller', 'Titulado', 'Maestria', 'Doctorado'];
-  niveles = ['Basico', 'Intermedio', 'Avanzado', 'Nativo'];
+  gradosInstruccion = ['Secundaria Completa', 'Técnico', 'Universitario Incompleto', 'Bachiller', 'Titulado', 'Maestría', 'Doctorado'];
+  niveles = ['Básico', 'Intermedio', 'Avanzado', 'Nativo'];
   relaciones = ['Jefe Directo', 'Colega', 'Cliente', 'Amigo', 'Familiar', 'Profesor'];
   tiposSangre = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  tiposEstudio = ['Diplomado', 'Maestría', 'Doctorado', 'Certificación', 'Curso', 'Segunda Carrera'];
 
   ngOnInit(): void {
     this.loadFicha();
@@ -460,11 +513,16 @@ export class FichaComponent implements OnInit {
           idiomas: this.parseJson(res.idiomas),
           habilidades: this.parseJson(res.habilidades),
           referencias: this.parseJson(res.referencias),
+          estudios_adicionales: this.parseJson(res.estudios_adicionales),
         };
+        this.prepopulateDefaults();
+        this.padReferencias();
         this.loading = false;
       },
       error: () => {
         this.ficha = this.emptyFicha();
+        this.prepopulateDefaults();
+        this.padReferencias();
         this.loading = false;
       },
     });
@@ -478,6 +536,27 @@ export class FichaComponent implements OnInit {
     return [];
   }
 
+  private prepopulateDefaults(): void {
+    if (!this.ficha) return;
+    if (this.ficha.idiomas.length === 0) {
+      this.ficha.idiomas = [{ idioma: 'Inglés', nivel: 'Básico' }];
+    }
+    if (this.ficha.habilidades.length === 0) {
+      this.ficha.habilidades = [
+        { nombre: 'Excel', nivel: 50 },
+        { nombre: 'Power BI', nivel: 30 },
+        { nombre: 'Word', nivel: 50 },
+      ];
+    }
+  }
+
+  private padReferencias(): void {
+    if (!this.ficha) return;
+    while (this.ficha.referencias.length < 2) {
+      this.ficha.referencias.push({ nombre: '', empresa: '', cargo: '', telefono: '', relacion: '' });
+    }
+  }
+
   guardar(): void {
     if (!this.ficha) return;
     this.saving = true;
@@ -489,6 +568,7 @@ export class FichaComponent implements OnInit {
       idiomas: JSON.stringify(this.ficha.idiomas ?? []),
       habilidades: JSON.stringify(this.ficha.habilidades ?? []),
       referencias: JSON.stringify(this.ficha.referencias ?? []),
+      estudios_adicionales: JSON.stringify(this.ficha.estudios_adicionales ?? []),
     };
     this.http.put(`${this.apiUrl}/portal/mi-ficha`, payload).subscribe({
       next: () => {
@@ -512,7 +592,7 @@ export class FichaComponent implements OnInit {
   }
 
   addIdioma(): void {
-    this.ficha?.idiomas.push({ idioma: '', nivel: 'Basico' });
+    this.ficha?.idiomas.push({ idioma: '', nivel: 'Básico' });
   }
   removeIdioma(i: number): void {
     this.ficha?.idiomas.splice(i, 1);
@@ -532,12 +612,20 @@ export class FichaComponent implements OnInit {
     this.ficha?.referencias.splice(i, 1);
   }
 
+  addEstudio(): void {
+    this.ficha?.estudios_adicionales.push({ tipo: '', nombre: '', institucion: '', anio: null });
+  }
+  removeEstudio(i: number): void {
+    this.ficha?.estudios_adicionales.splice(i, 1);
+  }
+
   private emptyFicha(): FichaData {
     return {
       nombres: '', apellidos: '', dni: '', fecha_nacimiento: '', lugar_nacimiento: '',
       estado_civil: '', genero: '', direccion: '', distrito: '', provincia: '', departamento: '',
       telefono: '', telefono_emergencia: '',
       grado_instruccion: '', carrera: '', universidad: '', anio_egreso: null, colegiatura: '',
+      estudios_adicionales: [],
       experiencia_laboral: [], idiomas: [], habilidades: [], referencias: [],
       pretension_salarial: null, disponibilidad: '', modalidad_preferida: '',
       tipo_sangre: '', alergias: '', condiciones_medicas: '', discapacidad: '',

@@ -163,7 +163,8 @@
       "Bash(python populate_json.py)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" -H \"Origin: https://aquariusrecursos.vercel.app\" https://onboardiq-api-production-3f30.up.railway.app/api/health)",
       "Bash(curl -v -X OPTIONS -H \"Origin: https://aquariusrecursos.vercel.app\" -H \"Access-Control-Request-Method: GET\" -H \"Access-Control-Request-Headers: authorization,content-type\" https://onboardiq-api-production-3f30.up.railway.app/api/seguridad/auditoria?limit=1)",
-      "Bash(curl -s -X POST https://onboardiq-api-production-3f30.up.railway.app/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"carlos.mendoza@email.com\",\"password\":\"aquarius2026\"}')"
+      "Bash(curl -s -X POST https://onboardiq-api-production-3f30.up.railway.app/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"carlos.mendoza@email.com\",\"password\":\"aquarius2026\"}')",
+      "Bash(python3 -c ':*)"
     ]
   }
 }

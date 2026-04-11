@@ -242,9 +242,9 @@ export class EvaluacionesPortalComponent implements OnInit {
         this.evaluaciones = (res || []).map(e => ({
           id: e.id,
           evaluacion_id: e.evaluacion_id,
-          nombre: e.evaluacion_nombre || '',
-          descripcion: e.evaluacion_tipo || '',
-          estado: e.estado || 'Pendiente',
+          nombre: e.evaluacion_nombre || 'Evaluación',
+          descripcion: e.evaluacion_tipo === 'tecnica' ? 'Evaluación Técnica' : e.evaluacion_tipo === 'psicologica' ? 'Evaluación Psicológica' : e.evaluacion_tipo === 'entrevista' ? 'Entrevista' : e.evaluacion_tipo || '',
+          estado: e.estado === 'pendiente' ? 'Pendiente' : e.estado === 'calificada' || e.estado === 'completada' ? 'Completado' : e.estado === 'en_progreso' ? 'En Progreso' : e.estado || 'Pendiente',
           puntaje: e.puntaje_obtenido,
           aprobado: e.puntaje_obtenido != null ? e.puntaje_obtenido >= 60 : null,
           fecha_completado: null,
@@ -265,12 +265,30 @@ export class EvaluacionesPortalComponent implements OnInit {
   }
 
   iniciarEvaluacion(eval_: Evaluacion): void {
-    this.http.get<Pregunta[]>(`${this.apiUrl}/evaluaciones/${eval_.evaluacion_id}/preguntas`).subscribe({
-      next: (preguntas) => {
+    this.http.get<any[]>(`${this.apiUrl}/evaluaciones/${eval_.evaluacion_id}/preguntas`).subscribe({
+      next: (rawPreguntas) => {
+        // Mapear preguntas del API: {id, pregunta, opciones (JSON string), respuesta_correcta}
+        // a formato del quiz: {id, texto, opciones: [{id, texto}]}
+        const preguntas: Pregunta[] = (rawPreguntas || []).map((p: any) => {
+          let opciones: Opcion[] = [];
+          try {
+            const parsed = typeof p.opciones === 'string' ? JSON.parse(p.opciones) : p.opciones;
+            if (Array.isArray(parsed)) {
+              opciones = parsed.map((opt: any, idx: number) => ({
+                id: idx,
+                texto: typeof opt === 'string' ? opt : opt.texto || opt.label || String(opt),
+              }));
+            }
+          } catch {
+            opciones = [];
+          }
+          return { id: p.id, texto: p.pregunta || p.texto || '', opciones };
+        });
+
         this.currentEval = {
           ...eval_,
-          preguntas: preguntas || [],
-          total_preguntas: (preguntas || []).length,
+          preguntas,
+          total_preguntas: preguntas.length,
         };
         this.currentQuestionIndex = 0;
         this.selectedAnswers = {};
@@ -278,7 +296,7 @@ export class EvaluacionesPortalComponent implements OnInit {
         this.showResults = false;
       },
       error: () => {
-        this.error = 'Error al cargar las preguntas de la evaluacion.';
+        this.error = 'Error al cargar las preguntas de la evaluación.';
       },
     });
   }
@@ -307,7 +325,7 @@ export class EvaluacionesPortalComponent implements OnInit {
       respuesta_seleccionada: this.selectedAnswers[i],
     }));
 
-    this.http.post<ResultadoEvaluacion>(
+    this.http.post<any>(
       `${this.apiUrl}/evaluaciones/submit`,
       {
         evaluacion_postulante_id: this.currentEval.id,
@@ -315,15 +333,20 @@ export class EvaluacionesPortalComponent implements OnInit {
       }
     ).subscribe({
       next: (res) => {
-        this.resultado = res;
+        this.resultado = {
+          puntaje: res.puntaje_obtenido ?? res.puntaje ?? 0,
+          aprobado: res.aprobado ?? (res.puntaje_obtenido >= 60),
+          respuestas_correctas: res.respuestas_correctas ?? Math.round((res.puntaje_obtenido ?? 0) * (res.total_preguntas ?? 0) / 100),
+          total_preguntas: res.total_preguntas ?? this.currentEval!.preguntas!.length,
+        };
         this.quizMode = false;
         this.showResults = true;
         this.submitting = false;
         this.loadEvaluaciones();
       },
-      error: () => {
+      error: (err) => {
         this.submitting = false;
-        this.error = 'Error al enviar la evaluacion.';
+        this.error = err?.error?.detail || 'Error al enviar la evaluación.';
       },
     });
   }
