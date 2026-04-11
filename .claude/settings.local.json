@@ -169,7 +169,13 @@
       "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'{len\\(d\\)} festividades'\\); [print\\(f'  {f[\\\\\"fecha\\\\\"]} - {f[\\\\\"nombre\\\\\"]}'\\) for f in d[:5]]\")",
       "Bash(railway logs:*)",
       "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'{len\\(d\\)} criterios'\\)\")",
-      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'{len\\(d\\)} criterios:'\\);[print\\(f'  {c[\\\\\"nombre\\\\\"]} \\({c[\\\\\"peso\\\\\"]}%\\) [{c[\\\\\"categoria\\\\\"]}]'\\) for c in d]\")"
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'{len\\(d\\)} criterios:'\\);[print\\(f'  {c[\\\\\"nombre\\\\\"]} \\({c[\\\\\"peso\\\\\"]}%\\) [{c[\\\\\"categoria\\\\\"]}]'\\) for c in d]\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'{len\\(d\\)} capacitaciones'\\)\")",
+      "Bash(vercel ls:*)",
+      "Bash(grep -r \"chat-widget\\\\|ChatWidget\" /c/Proyectos/aquarius_recursos/frontend/dist/frontend/browser/*.js)",
+      "Bash(vercel --prod --yes --force)",
+      "Bash(curl -s https://aquariusrecursos.vercel.app/main*.js)",
+      "Bash(curl -s \"https://aquariusrecursos.vercel.app\")"
     ]
   }
 }

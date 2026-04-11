@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
     <!-- Floating Button -->
     <button
       (click)="togglePanel()"
-      class="fixed left-6 bottom-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg z-50 flex items-center justify-center transition-colors"
+      class="fixed right-6 bottom-16 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl z-50 flex items-center justify-center transition-all hover:scale-110"
     >
       <svg *ngIf="!panelOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -30,7 +30,7 @@ import { AuthService } from '../../../core/services/auth.service';
     <!-- Chat Panel -->
     <div
       *ngIf="panelOpen"
-      class="fixed left-6 bottom-24 w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
+      class="fixed right-6 bottom-32 w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
     >
       <!-- Header -->
       <div class="px-4 py-3 flex items-center justify-between flex-shrink-0" style="background-color: #0a1f3d;">
@@ -360,20 +360,27 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   startConversation(user: any): void {
     this.http.post<any>(`${this.apiUrl}/chat/conversaciones`, {
-      participante_id: user.id,
+      participante_ids: [user.id],
+      tipo: 'directo',
     }).subscribe({
       next: (conv) => {
         this.showNewConversation = false;
+        this.loadConversations();
         this.openConversation(conv);
       },
-      error: () => {
-        // Try to find existing conversation
-        const existing = this.conversations.find((c: any) =>
-          c.nombre === user.nombre || c.participante_id === user.id
-        );
-        if (existing) {
-          this.showNewConversation = false;
-          this.openConversation(existing);
+      error: (err) => {
+        // Si ya existe, buscar en las conversaciones existentes
+        if (err.status === 400 || err.status === 409) {
+          this.loadConversations();
+          setTimeout(() => {
+            const existing = this.conversations.find((c: any) =>
+              c.nombre === user.nombre
+            );
+            if (existing) {
+              this.showNewConversation = false;
+              this.openConversation(existing);
+            }
+          }, 500);
         }
       },
     });
