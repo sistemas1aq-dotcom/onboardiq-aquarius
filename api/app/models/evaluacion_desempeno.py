@@ -4,7 +4,7 @@ from .database import Base
 
 
 class EvaluacionDesempeno(Base):
-    __tablename__ = "evaluaciones_desempeno"
+    __tablename__ = "evaluacion_desempeno"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     trabajador_id = Column(Integer, ForeignKey("postulantes.id"), nullable=False)
@@ -19,7 +19,7 @@ class EvaluacionDesempeno(Base):
 
 
 class CriterioEvaluacion(Base):
-    __tablename__ = "criterios_evaluacion"
+    __tablename__ = "criterio_evaluacion"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nombre = Column(String(200), nullable=False)
@@ -30,10 +30,10 @@ class CriterioEvaluacion(Base):
 
 
 class EvaluacionDetalle(Base):
-    __tablename__ = "evaluacion_detalles"
+    __tablename__ = "evaluacion_detalle"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    evaluacion_desempeno_id = Column(Integer, ForeignKey("evaluaciones_desempeno.id"), nullable=False)
-    criterio_id = Column(Integer, ForeignKey("criterios_evaluacion.id"), nullable=False)
+    evaluacion_desempeno_id = Column(Integer, ForeignKey("evaluacion_desempeno.id"), nullable=False)
+    criterio_id = Column(Integer, ForeignKey("criterio_evaluacion.id"), nullable=False)
     puntaje = Column(Integer, default=0)  # 0-5
     comentario = Column(Text)
