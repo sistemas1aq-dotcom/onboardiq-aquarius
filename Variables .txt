@@ -2,6 +2,7 @@
 ONBOARDIQ 
 Backend: https://onboardiq-api-production-3f30.up.railway.app
 Frontend: https://aquariusrecursos.vercel.app
+Contraseña de Aplicación: dkau bblt odox mhrf
 
 BOLTWAREHOUSE
 backend: https://backend-eight-delta-20.vercel.app
