@@ -66,6 +66,16 @@ export const ADMIN_ROUTES: Routes = [
         path: 'comunicaciones',
         loadComponent: () =>
           import('./comunicaciones/comunicaciones.component').then((m) => m.ComunicacionesComponent)
+      },
+      {
+        path: 'capacitaciones',
+        loadComponent: () =>
+          import('./capacitaciones/capacitaciones-admin.component').then((m) => m.CapacitacionesAdminComponent)
+      },
+      {
+        path: 'eval-desempeno',
+        loadComponent: () =>
+          import('./eval-desempeno/eval-desempeno.component').then((m) => m.EvalDesempenoComponent)
       }
     ]
   }

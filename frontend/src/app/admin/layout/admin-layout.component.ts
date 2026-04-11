@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { HeaderComponent } from '../../shared/components/header/header.component';
+import { ChatWidgetComponent } from '../../shared/components/chat-widget/chat-widget.component';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, ChatWidgetComponent],
   template: `
     <div class="min-h-screen bg-gray-50">
       <app-sidebar
@@ -38,6 +39,7 @@ import { AuthService } from '../../core/services/auth.service';
           <p class="text-center text-xs text-gray-400">OnboardIQ Aquarius — Recruit System &nbsp;|&nbsp; &copy; Powered by Aquarius Consulting 2026</p>
         </footer>
       </div>
+      <app-chat-widget></app-chat-widget>
     </div>
   `,
 })

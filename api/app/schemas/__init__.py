@@ -11,3 +11,5 @@ from .capacitacion import *
 from .ia import *
 from .anuncio import *
 from .comunicacion import *
+from .evaluacion_desempeno import *
+from .chat import *

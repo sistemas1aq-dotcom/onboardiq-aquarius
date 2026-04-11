@@ -66,6 +66,11 @@ export const PORTAL_ROUTES: Routes = [
         path: 'anuncios',
         loadComponent: () =>
           import('./anuncios/anuncios-portal.component').then((m) => m.AnunciosPortalComponent)
+      },
+      {
+        path: 'eval-desempeno',
+        loadComponent: () =>
+          import('./eval-desempeno/eval-desempeno-portal.component').then((m) => m.EvalDesempenoPortalComponent)
       }
     ]
   }

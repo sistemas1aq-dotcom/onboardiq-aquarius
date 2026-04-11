@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from ..models.database import get_db
 from ..models.usuario import Usuario
 from ..schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioResponse
@@ -111,8 +112,16 @@ def update_usuario(
 
     for key, value in update_data.items():
         setattr(usuario, key, value)
-    db.commit()
-    db.refresh(usuario)
+
+    try:
+        db.commit()
+        db.refresh(usuario)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="El email o DNI ya esta en uso por otro usuario",
+        )
 
     log_action(
         db,

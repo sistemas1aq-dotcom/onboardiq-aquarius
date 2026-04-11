@@ -15,3 +15,5 @@ from .ia_analisis import IAAnalisis
 from .anuncio import Anuncio
 from .comunicacion import ComunicacionLog
 from .festividad import Festividad
+from .evaluacion_desempeno import EvaluacionDesempeno, CriterioEvaluacion, EvaluacionDetalle
+from .chat import ChatConversacion, ChatParticipante, ChatMensaje
