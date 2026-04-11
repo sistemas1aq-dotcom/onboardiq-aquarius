@@ -123,6 +123,7 @@ def listar_evaluaciones(
     result = []
     for ev in evaluaciones:
         trabajador = db.query(Postulante).filter(Postulante.id == ev.trabajador_id).first()
+        trab_user = db.query(Usuario).filter(Usuario.id == trabajador.usuario_id).first() if trabajador else None
         evaluador = db.query(Usuario).filter(Usuario.id == ev.evaluador_id).first()
         result.append(EvalDesempenoResponse(
             id=ev.id,
@@ -135,7 +136,7 @@ def listar_evaluaciones(
             estado=ev.estado,
             comentarios_generales=ev.comentarios_generales,
             fecha_creacion=ev.fecha_creacion,
-            trabajador_nombre=trabajador.nombre if trabajador else None,
+            trabajador_nombre=trab_user.nombre if trab_user else None,
             evaluador_nombre=evaluador.nombre if evaluador else None,
         ))
 
@@ -163,6 +164,7 @@ def crear_evaluacion(
     db.refresh(evaluacion)
 
     trabajador = db.query(Postulante).filter(Postulante.id == evaluacion.trabajador_id).first()
+    trab_usuario = db.query(Usuario).filter(Usuario.id == trabajador.usuario_id).first() if trabajador else None
     evaluador = db.query(Usuario).filter(Usuario.id == evaluacion.evaluador_id).first()
 
     return EvalDesempenoResponse(
@@ -176,7 +178,7 @@ def crear_evaluacion(
         estado=evaluacion.estado,
         comentarios_generales=evaluacion.comentarios_generales,
         fecha_creacion=evaluacion.fecha_creacion,
-        trabajador_nombre=trabajador.nombre if trabajador else None,
+        trabajador_nombre=trab_usuario.nombre if trab_usuario else None,
         evaluador_nombre=evaluador.nombre if evaluador else None,
     )
 
@@ -198,13 +200,14 @@ def obtener_evaluacion(
         .all()
     )
     trabajador = db.query(Postulante).filter(Postulante.id == evaluacion.trabajador_id).first()
+    trab_user = db.query(Usuario).filter(Usuario.id == trabajador.usuario_id).first() if trabajador else None
     evaluador = db.query(Usuario).filter(Usuario.id == evaluacion.evaluador_id).first()
 
     return {
         "id": evaluacion.id,
         "trabajador_id": evaluacion.trabajador_id,
         "evaluador_id": evaluacion.evaluador_id,
-        "trabajador_nombre": trabajador.nombre if trabajador else None,
+        "trabajador_nombre": trab_user.nombre if trab_user else None,
         "evaluador_nombre": evaluador.nombre if evaluador else None,
         "periodo": evaluacion.periodo,
         "tipo": evaluacion.tipo,
