@@ -133,7 +133,10 @@ export class HeaderComponent implements OnInit {
   unreadCount = 0;
 
   ngOnInit(): void {
-    this.loadNotificationCount();
+    // Solo cargar notificaciones para admin/evaluador
+    if (this.userRole === 'admin' || this.userRole === 'evaluador') {
+      this.loadNotificationCount();
+    }
   }
 
   get initials(): string {

@@ -49,10 +49,10 @@ const MENU_CONFIG: Record<string, MenuItem[]> = {
 };
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  admin: { bg: 'bg-red-500/20', text: 'text-red-300', label: 'Administrador' },
-  evaluador: { bg: 'bg-yellow-500/20', text: 'text-yellow-300', label: 'Evaluador' },
-  postulante: { bg: 'bg-cyan-500/20', text: 'text-cyan-300', label: 'Postulante' },
-  trabajador: { bg: 'bg-green-500/20', text: 'text-green-300', label: 'Trabajador' },
+  admin: { bg: 'bg-red-900', text: 'text-red-300', label: 'Administrador' },
+  evaluador: { bg: 'bg-yellow-900', text: 'text-yellow-300', label: 'Evaluador' },
+  postulante: { bg: 'bg-cyan-900', text: 'text-cyan-300', label: 'Postulante' },
+  trabajador: { bg: 'bg-green-900', text: 'text-green-300', label: 'Trabajador' },
 };
 
 @Component({
