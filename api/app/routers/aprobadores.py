@@ -350,21 +350,7 @@ def asignar_aprobadores_evaluacion(
             )
             db.add(nuevo)
 
-    # Si no hay postulantes asignados, guardar de todas formas para el primer postulante que se asigne
-    if not postulante_ids:
-        # Guardar como aprobadores "plantilla" en postulante_id=0 (reservado)
-        db.query(AprobadorPostulante).filter(
-            AprobadorPostulante.postulante_id == 0
-        ).delete()
-        for ap in data.aprobadores:
-            nuevo = AprobadorPostulante(
-                postulante_id=0,  # plantilla
-                usuario_id=ap.usuario_id,
-                orden=ap.orden,
-                estado="pendiente",
-            )
-            db.add(nuevo)
-
+    # Si no hay postulantes asignados, solo enviamos emails (no guardamos en BD)
     db.commit()
 
     # Enviar correo a cada aprobador
