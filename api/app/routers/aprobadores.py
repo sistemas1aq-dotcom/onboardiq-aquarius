@@ -101,6 +101,37 @@ def mis_pendientes(
     return result
 
 
+@router.get("/evaluacion/{evaluacion_id}")
+def get_aprobadores_evaluacion_list(
+    evaluacion_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """Lista aprobadores de una evaluacion."""
+    aprobadores = (
+        db.query(AprobadorPostulante)
+        .filter(
+            AprobadorPostulante.evaluacion_id == evaluacion_id,
+            AprobadorPostulante.postulante_id == None,
+        )
+        .order_by(AprobadorPostulante.orden)
+        .all()
+    )
+    result = []
+    for ap in aprobadores:
+        usuario = db.query(Usuario).filter(Usuario.id == ap.usuario_id).first()
+        result.append({
+            "id": ap.id,
+            "usuario_id": ap.usuario_id,
+            "orden": ap.orden,
+            "estado": ap.estado,
+            "nombre": usuario.nombre if usuario else "",
+            "area": usuario.area if usuario else "",
+            "rol": usuario.rol if usuario else "",
+        })
+    return result
+
+
 @router.get("/{postulante_id}", response_model=list[AprobadorResponse])
 def listar_aprobadores(
     postulante_id: int,
@@ -314,37 +345,6 @@ def rechazar(
 
     db.commit()
     return {"detail": "Rechazado exitosamente"}
-
-
-@router.get("/evaluacion/{evaluacion_id}")
-def get_aprobadores_evaluacion(
-    evaluacion_id: int,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(get_current_user),
-):
-    """Lista aprobadores de una evaluación."""
-    aprobadores = (
-        db.query(AprobadorPostulante)
-        .filter(
-            AprobadorPostulante.evaluacion_id == evaluacion_id,
-            AprobadorPostulante.postulante_id == None,
-        )
-        .order_by(AprobadorPostulante.orden)
-        .all()
-    )
-    result = []
-    for ap in aprobadores:
-        usuario = db.query(Usuario).filter(Usuario.id == ap.usuario_id).first()
-        result.append({
-            "id": ap.id,
-            "usuario_id": ap.usuario_id,
-            "orden": ap.orden,
-            "estado": ap.estado,
-            "nombre": usuario.nombre if usuario else "",
-            "area": usuario.area if usuario else "",
-            "rol": usuario.rol if usuario else "",
-        })
-    return result
 
 
 @router.delete("/{postulante_id}/{aprobador_id}")
