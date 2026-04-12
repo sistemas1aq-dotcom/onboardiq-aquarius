@@ -175,7 +175,9 @@
       "Bash(grep -r \"chat-widget\\\\|ChatWidget\" /c/Proyectos/aquarius_recursos/frontend/dist/frontend/browser/*.js)",
       "Bash(vercel --prod --yes --force)",
       "Bash(curl -s https://aquariusrecursos.vercel.app/main*.js)",
-      "Bash(curl -s \"https://aquariusrecursos.vercel.app\")"
+      "Bash(curl -s \"https://aquariusrecursos.vercel.app\")",
+      "Bash(gh repo:*)",
+      "Bash(git remote:*)"
     ]
   }
 }
