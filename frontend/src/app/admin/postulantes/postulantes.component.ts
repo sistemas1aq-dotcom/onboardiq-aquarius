@@ -9,6 +9,7 @@ import { ProgressBarComponent } from '../../shared/components/progress-bar/progr
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { FormFieldComponent } from '../../shared/components/form-field/form-field.component';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-postulantes',
@@ -221,6 +222,70 @@ import { environment } from '../../../environments/environment';
             </div>
           </div>
 
+          <!-- Cadena de Aprobacion -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-semibold text-gray-700">Cadena de Aprobacion</h4>
+              <button
+                (click)="openConfigurarAprobadores()"
+                class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              >Configurar Aprobadores</button>
+            </div>
+            <div *ngIf="aprobadores.length === 0" class="text-sm text-gray-400 bg-gray-50 rounded-lg p-4 text-center">
+              No hay aprobadores asignados
+            </div>
+            <div *ngIf="aprobadores.length > 0" class="space-y-2">
+              <div *ngFor="let ap of aprobadores" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {{ ap.orden }}
+                </span>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  {{ getInitials(ap.usuario_nombre) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ ap.usuario_nombre || 'Sin nombre' }}</p>
+                  <p class="text-xs text-gray-500">{{ ap.usuario_area || 'Sin area' }}</p>
+                </div>
+                <span class="text-xs px-2 py-1 rounded-full font-medium"
+                  [ngClass]="{
+                    'bg-gray-100 text-gray-600': ap.estado === 'pendiente',
+                    'bg-green-100 text-green-700': ap.estado === 'aprobado',
+                    'bg-red-100 text-red-700': ap.estado === 'rechazado',
+                    'bg-gray-100 text-gray-400 line-through': ap.estado === 'omitido'
+                  }">
+                  {{ ap.estado }}
+                </span>
+              </div>
+            </div>
+            <!-- Inline approve/reject if current user is active approver -->
+            <div *ngIf="miAprobacionActiva" class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p class="text-sm font-medium text-amber-800 mb-2">Es tu turno de aprobar</p>
+              <div class="flex items-center gap-2">
+                <button
+                  (click)="aprobarComoAprobador()"
+                  class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                >Aprobar</button>
+                <button
+                  (click)="rechazarComoAprobador()"
+                  class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >Rechazar</button>
+              </div>
+            </div>
+            <!-- Approval history/timeline -->
+            <div *ngIf="aprobadoresConAccion.length > 0" class="mt-3">
+              <h5 class="text-xs font-semibold text-gray-500 uppercase mb-2">Historial</h5>
+              <div class="space-y-1">
+                <div *ngFor="let ap of aprobadoresConAccion" class="flex items-center gap-2 text-xs text-gray-500">
+                  <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    [ngClass]="ap.estado === 'aprobado' ? 'bg-green-500' : 'bg-red-500'"></span>
+                  <span>{{ ap.usuario_nombre }} - {{ ap.estado }}</span>
+                  <span *ngIf="ap.fecha_accion" class="text-gray-400">{{ ap.fecha_accion | date:'short' }}</span>
+                  <span *ngIf="ap.comentario" class="text-gray-400 italic truncate">{{ ap.comentario }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Action Buttons -->
           <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
             <button
@@ -267,11 +332,101 @@ import { environment } from '../../../environments/environment';
           </button>
         </div>
       </app-modal>
+      <!-- Configurar Aprobadores Modal (inline) -->
+      <div *ngIf="configAprobadoresOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="configAprobadoresOpen = false"></div>
+        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 z-10 max-h-[80vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Configurar Aprobadores</h3>
+            <button (click)="configAprobadoresOpen = false" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Left: Available users -->
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Usuarios Disponibles</h4>
+              <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                <div
+                  *ngFor="let u of availableUsers"
+                  class="flex items-center justify-between p-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
+                  (click)="addAprobadorToChain(u)"
+                >
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">{{ u.nombre }}</p>
+                    <p class="text-xs text-gray-500">{{ u.area || 'Sin area' }} - {{ u.rol }}</p>
+                  </div>
+                  <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </div>
+                <div *ngIf="availableUsers.length === 0" class="p-4 text-center text-xs text-gray-400">
+                  No hay usuarios disponibles
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Selected chain -->
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Cadena de Aprobacion</h4>
+              <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                <div
+                  *ngFor="let item of chainAprobadores; let i = index"
+                  class="flex items-center gap-2 p-2.5 border-b border-gray-100 last:border-0"
+                >
+                  <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    {{ i + 1 }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ item.nombre }}</p>
+                  </div>
+                  <button (click)="moveAprobadorUp(i)" [disabled]="i === 0" class="text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                    </svg>
+                  </button>
+                  <button (click)="moveAprobadorDown(i)" [disabled]="i === chainAprobadores.length - 1" class="text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </button>
+                  <button (click)="removeAprobadorFromChain(i)" class="text-red-400 hover:text-red-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+                <div *ngIf="chainAprobadores.length === 0" class="p-4 text-center text-xs text-gray-400">
+                  Agrega usuarios a la cadena
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+            <button
+              (click)="configAprobadoresOpen = false"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >Cancelar</button>
+            <button
+              (click)="guardarAprobadores()"
+              [disabled]="savingAprobadores"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {{ savingAprobadores ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
 })
 export class PostulantesComponent implements OnInit {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private apiUrl = environment.apiUrl;
 
   @ViewChild('radarChartCanvas') radarChartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -313,6 +468,14 @@ export class PostulantesComponent implements OnInit {
   ];
 
   private radarChart: Chart | null = null;
+
+  // Aprobadores
+  aprobadores: any[] = [];
+  miAprobacionActiva: any = null;
+  configAprobadoresOpen = false;
+  availableUsers: any[] = [];
+  chainAprobadores: any[] = [];
+  savingAprobadores = false;
 
   get totalPages(): number {
     return Math.ceil(this.filteredPostulantes.length / this.pageSize);
@@ -365,6 +528,7 @@ export class PostulantesComponent implements OnInit {
   openDetailModal(p: any): void {
     this.selectedPostulante = p;
     this.detailModalOpen = true;
+    this.loadAprobadores(p.id);
     setTimeout(() => this.initRadarChart(), 200);
   }
 
@@ -463,6 +627,145 @@ export class PostulantesComponent implements OnInit {
         console.error('Error creando postulante:', err);
         this.saving = false;
       },
+    });
+  }
+
+  // --- Aprobadores ---
+
+  loadAprobadores(postulanteId: number): void {
+    this.aprobadores = [];
+    this.miAprobacionActiva = null;
+    this.http.get<any[]>(`${this.apiUrl}/aprobadores/${postulanteId}`).subscribe({
+      next: (data) => {
+        this.aprobadores = data ?? [];
+        this.checkMiAprobacion();
+      },
+      error: () => {
+        this.aprobadores = [];
+      },
+    });
+  }
+
+  private checkMiAprobacion(): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      this.miAprobacionActiva = null;
+      return;
+    }
+    // Find if current user is a pending approver and it's their turn
+    for (const ap of this.aprobadores) {
+      if (ap.usuario_id === currentUser.id && ap.estado === 'pendiente') {
+        const anteriores = this.aprobadores.filter((a: any) => a.orden < ap.orden);
+        const todosAprobados = anteriores.every((a: any) => a.estado === 'aprobado');
+        if (todosAprobados) {
+          this.miAprobacionActiva = ap;
+          return;
+        }
+      }
+    }
+    this.miAprobacionActiva = null;
+  }
+
+  get aprobadoresConAccion(): any[] {
+    return this.aprobadores.filter((a: any) => a.estado === 'aprobado' || a.estado === 'rechazado');
+  }
+
+  getInitials(nombre: string | null): string {
+    if (!nombre) return '?';
+    return nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  openConfigurarAprobadores(): void {
+    this.chainAprobadores = this.aprobadores
+      .filter((a: any) => a.estado === 'pendiente' || a.estado === 'aprobado')
+      .map((a: any) => ({
+        usuario_id: a.usuario_id,
+        nombre: a.usuario_nombre || 'Sin nombre',
+      }));
+
+    // Load available users
+    this.http.get<any[]>(`${this.apiUrl}/usuarios/`, { params: { rol: 'admin,evaluador' } }).subscribe({
+      next: (users) => {
+        this.availableUsers = (users ?? []).filter(
+          (u: any) => !this.chainAprobadores.some((c: any) => c.usuario_id === u.id)
+        );
+      },
+      error: () => {
+        this.availableUsers = [];
+      },
+    });
+
+    this.configAprobadoresOpen = true;
+  }
+
+  addAprobadorToChain(user: any): void {
+    this.chainAprobadores.push({ usuario_id: user.id, nombre: user.nombre });
+    this.availableUsers = this.availableUsers.filter((u: any) => u.id !== user.id);
+  }
+
+  removeAprobadorFromChain(index: number): void {
+    const removed = this.chainAprobadores.splice(index, 1)[0];
+    // Re-add to available
+    this.availableUsers.push({ id: removed.usuario_id, nombre: removed.nombre, area: '', rol: '' });
+  }
+
+  moveAprobadorUp(index: number): void {
+    if (index <= 0) return;
+    const temp = this.chainAprobadores[index];
+    this.chainAprobadores[index] = this.chainAprobadores[index - 1];
+    this.chainAprobadores[index - 1] = temp;
+  }
+
+  moveAprobadorDown(index: number): void {
+    if (index >= this.chainAprobadores.length - 1) return;
+    const temp = this.chainAprobadores[index];
+    this.chainAprobadores[index] = this.chainAprobadores[index + 1];
+    this.chainAprobadores[index + 1] = temp;
+  }
+
+  guardarAprobadores(): void {
+    if (!this.selectedPostulante) return;
+    this.savingAprobadores = true;
+    const body = {
+      aprobadores: this.chainAprobadores.map((c: any, i: number) => ({
+        usuario_id: c.usuario_id,
+        orden: i + 1,
+      })),
+    };
+    this.http.post(`${this.apiUrl}/aprobadores/${this.selectedPostulante.id}`, body).subscribe({
+      next: () => {
+        this.configAprobadoresOpen = false;
+        this.savingAprobadores = false;
+        this.loadAprobadores(this.selectedPostulante.id);
+      },
+      error: (err) => {
+        console.error('Error guardando aprobadores:', err);
+        this.savingAprobadores = false;
+      },
+    });
+  }
+
+  aprobarComoAprobador(): void {
+    if (!this.miAprobacionActiva) return;
+    const comentario = prompt('Comentario (opcional):') || '';
+    this.http.post(`${this.apiUrl}/aprobadores/${this.miAprobacionActiva.id}/aprobar`, { comentario }).subscribe({
+      next: () => {
+        if (this.selectedPostulante) this.loadAprobadores(this.selectedPostulante.id);
+        this.loadPostulantes();
+      },
+      error: (err) => console.error('Error aprobando:', err),
+    });
+  }
+
+  rechazarComoAprobador(): void {
+    if (!this.miAprobacionActiva) return;
+    const comentario = prompt('Motivo de rechazo (opcional):') || '';
+    this.http.post(`${this.apiUrl}/aprobadores/${this.miAprobacionActiva.id}/rechazar`, { comentario }).subscribe({
+      next: () => {
+        if (this.selectedPostulante) this.loadAprobadores(this.selectedPostulante.id);
+        this.loadPostulantes();
+      },
+      error: (err) => console.error('Error rechazando:', err),
     });
   }
 }

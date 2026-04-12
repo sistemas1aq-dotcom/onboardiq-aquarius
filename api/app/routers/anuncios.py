@@ -104,9 +104,12 @@ def enviar_anuncio(
     if not anuncio:
         raise HTTPException(status_code=404, detail="Anuncio no encontrado")
 
-    usuarios = db.query(Usuario).filter(Usuario.activo == True).all()
+    query = db.query(Usuario).filter(Usuario.activo == True)
+    if anuncio.destinatarios and anuncio.destinatarios != "all":
+        query = query.filter(Usuario.area == anuncio.destinatarios)
+    usuarios = query.all()
     if not usuarios:
-        raise HTTPException(status_code=400, detail="No hay usuarios activos")
+        raise HTTPException(status_code=400, detail="No hay usuarios activos para los destinatarios seleccionados")
 
     recipients = [u.email for u in usuarios if u.email]
 

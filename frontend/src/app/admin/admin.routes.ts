@@ -76,6 +76,11 @@ export const ADMIN_ROUTES: Routes = [
         path: 'eval-desempeno',
         loadComponent: () =>
           import('./eval-desempeno/eval-desempeno.component').then((m) => m.EvalDesempenoComponent)
+      },
+      {
+        path: 'mis-aprobaciones',
+        loadComponent: () =>
+          import('./mis-aprobaciones/mis-aprobaciones.component').then((m) => m.MisAprobacionesComponent)
       }
     ]
   }
