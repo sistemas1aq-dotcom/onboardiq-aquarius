@@ -309,4 +309,97 @@ def eliminar_aprobador(
 
     db.delete(ap)
     db.commit()
+    return {"message": "Aprobador eliminado"}
+
+
+@router.post("/evaluacion/{evaluacion_id}")
+def asignar_aprobadores_evaluacion(
+    evaluacion_id: int,
+    data: AprobadorAsignar,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["admin"])),
+):
+    """Asigna aprobadores a una evaluación y los notifica por correo."""
+    from ..models.evaluacion import Evaluacion, EvaluacionPostulante
+
+    evaluacion = db.query(Evaluacion).filter(Evaluacion.id == evaluacion_id).first()
+    if not evaluacion:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+
+    # Obtener postulantes asignados a esta evaluación
+    asignaciones = db.query(EvaluacionPostulante).filter(
+        EvaluacionPostulante.evaluacion_id == evaluacion_id
+    ).all()
+
+    postulante_ids = [a.postulante_id for a in asignaciones]
+
+    # Para cada postulante, asignar los aprobadores
+    for pid in postulante_ids:
+        # Eliminar aprobadores existentes
+        db.query(AprobadorPostulante).filter(
+            AprobadorPostulante.postulante_id == pid
+        ).delete()
+
+        # Insertar nuevos
+        for ap in data.aprobadores:
+            nuevo = AprobadorPostulante(
+                postulante_id=pid,
+                usuario_id=ap.usuario_id,
+                orden=ap.orden,
+                estado="pendiente",
+            )
+            db.add(nuevo)
+
+    # Si no hay postulantes asignados, guardar de todas formas para el primer postulante que se asigne
+    if not postulante_ids:
+        # Guardar como aprobadores "plantilla" en postulante_id=0 (reservado)
+        db.query(AprobadorPostulante).filter(
+            AprobadorPostulante.postulante_id == 0
+        ).delete()
+        for ap in data.aprobadores:
+            nuevo = AprobadorPostulante(
+                postulante_id=0,  # plantilla
+                usuario_id=ap.usuario_id,
+                orden=ap.orden,
+                estado="pendiente",
+            )
+            db.add(nuevo)
+
+    db.commit()
+
+    # Enviar correo a cada aprobador
+    enviados = 0
+    for ap in data.aprobadores:
+        usuario = db.query(Usuario).filter(Usuario.id == ap.usuario_id).first()
+        if usuario and usuario.email:
+            html = f"""
+            <div style="font-family:'Segoe UI',Arial;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
+                <div style="background:linear-gradient(135deg,#0a1f3d,#1a7ec5);padding:30px;text-align:center">
+                    <h1 style="color:#fff;margin:0;font-size:22px">OnboardIQ Aquarius</h1>
+                    <p style="color:#3ec6e0;margin:5px 0 0;font-size:13px">Recruit System</p>
+                </div>
+                <div style="padding:30px">
+                    <h2 style="color:#0a1f3d;font-size:18px">Ha sido asignado como Aprobador</h2>
+                    <p style="color:#64748b;font-size:14px">Estimado/a <strong>{usuario.nombre}</strong>,</p>
+                    <p style="color:#64748b;font-size:14px">Le informamos que ha sido asignado como <strong>aprobador nivel {ap.orden}</strong> para la evaluación:</p>
+                    <div style="background:#f8fafc;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid #3ec6e0">
+                        <p style="margin:0;font-size:16px;color:#0a1f3d;font-weight:600">{evaluacion.nombre}</p>
+                        <p style="margin:4px 0 0;font-size:13px;color:#64748b">Tipo: {evaluacion.tipo}</p>
+                    </div>
+                    <p style="color:#64748b;font-size:14px">Ingrese al sistema para revisar las postulaciones pendientes de aprobación.</p>
+                    <a href="https://aquariusrecursos.vercel.app" style="display:inline-block;background:#1a7ec5;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600">Ir al Sistema</a>
+                </div>
+                <div style="background:#f8fafc;padding:15px;text-align:center;border-top:1px solid #e5e7eb">
+                    <p style="margin:0;color:#94a3b8;font-size:11px">OnboardIQ Aquarius — Recruit System</p>
+                </div>
+            </div>"""
+            if send_email(usuario.email, f"Asignado como Aprobador - {evaluacion.nombre}", html):
+                enviados += 1
+
+    return {
+        "message": "Aprobadores asignados y notificados",
+        "postulantes_afectados": len(postulante_ids),
+        "aprobadores": len(data.aprobadores),
+        "emails_enviados": enviados,
+    }
     return {"detail": "Aprobador eliminado"}

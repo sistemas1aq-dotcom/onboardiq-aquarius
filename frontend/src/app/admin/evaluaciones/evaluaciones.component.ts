@@ -85,6 +85,10 @@ import { environment } from '../../../environments/environment';
                   class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >Asignar</button>
                 <button
+                  (click)="openAprobadoresModal(eval)"
+                  class="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                >Aprobadores</button>
+                <button
                   (click)="openEditEvalModal(eval)"
                   class="px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
                 >
@@ -310,6 +314,67 @@ import { environment } from '../../../environments/environment';
           </div>
         </div>
       </div>
+      <!-- Success/Error Toast -->
+      <div *ngIf="successMsg" class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-sm font-medium">{{ successMsg }}</span>
+      </div>
+
+      <!-- MODAL: Aprobadores -->
+      <div *ngIf="aprobadoresModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" (click)="aprobadoresModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">Configurar Aprobadores</h3>
+            <button (click)="aprobadoresModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+          </div>
+          <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+            <p class="text-sm text-gray-500 mb-4">Seleccione los aprobadores para la evaluación <strong>{{ aprobadoresEval?.nombre }}</strong>. El orden va de menor a mayor importancia.</p>
+
+            <!-- Usuarios disponibles -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Agregar Aprobador</label>
+              <select (change)="addAprobador($event)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white">
+                <option value="">Seleccionar usuario...</option>
+                <option *ngFor="let u of availableAprobadores" [value]="u.id">{{ u.nombre }} ({{ u.area || u.rol }})</option>
+              </select>
+            </div>
+
+            <!-- Cadena de aprobadores -->
+            <div class="space-y-2 mb-4">
+              <div *ngFor="let ap of selectedAprobadores; let i = index"
+                class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">{{ i + 1 }}</span>
+                <div class="flex-1">
+                  <span class="text-sm font-medium text-gray-900">{{ ap.nombre }}</span>
+                  <span class="text-xs text-gray-400 ml-2">{{ ap.area || ap.rol }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button *ngIf="i > 0" (click)="moveAprobador(i, -1)" class="p-1 text-gray-400 hover:text-blue-600" title="Subir">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                  </button>
+                  <button *ngIf="i < selectedAprobadores.length - 1" (click)="moveAprobador(i, 1)" class="p-1 text-gray-400 hover:text-blue-600" title="Bajar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                  <button (click)="removeAprobador(i)" class="p-1 text-gray-400 hover:text-red-600" title="Quitar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div *ngIf="selectedAprobadores.length === 0" class="text-center py-6 text-sm text-gray-400">
+                No hay aprobadores asignados. Seleccione usuarios arriba.
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button (click)="aprobadoresModalOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
+              <button (click)="guardarAprobadores()" [disabled]="saving || selectedAprobadores.length === 0" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50">
+                {{ saving ? 'Guardando...' : 'Guardar y Notificar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
 })
@@ -352,6 +417,18 @@ export class EvaluacionesComponent implements OnInit {
     puntaje: 20,
     orden: 0,
   };
+
+  // Aprobadores
+  aprobadoresModalOpen = false;
+  aprobadoresEval: any = null;
+  allUsers: any[] = [];
+  selectedAprobadores: any[] = [];
+  successMsg = '';
+
+  get availableAprobadores(): any[] {
+    const selectedIds = this.selectedAprobadores.map((a: any) => a.id);
+    return this.allUsers.filter((u: any) => !selectedIds.includes(u.id));
+  }
 
   tiposEvaluacion = [
     { value: 'tecnica', label: 'Tecnica' },
@@ -603,6 +680,91 @@ export class EvaluacionesComponent implements OnInit {
         this.filteredPreguntas = this.filteredPreguntas.filter((p) => p.id !== preg.id);
       },
       error: (err) => console.error('Error eliminando pregunta:', err),
+    });
+  }
+
+  // === APROBADORES ===
+
+  openAprobadoresModal(eval_: any): void {
+    this.aprobadoresEval = eval_;
+    this.selectedAprobadores = [];
+    this.aprobadoresModalOpen = true;
+
+    // Cargar usuarios (todos menos postulantes)
+    this.http.get<any[]>(`${this.apiUrl}/usuarios/`).subscribe({
+      next: (users) => {
+        this.allUsers = (users || []).filter((u: any) => u.rol !== 'postulante' && u.activo);
+      },
+      error: () => { this.allUsers = []; },
+    });
+
+    // Cargar aprobadores existentes para el primer postulante asignado a esta evaluación
+    // (los aprobadores se vinculan al postulante, cargamos si existe)
+  }
+
+  addAprobador(event: any): void {
+    const userId = Number(event.target.value);
+    if (!userId) return;
+    const user = this.allUsers.find((u: any) => u.id === userId);
+    if (user && !this.selectedAprobadores.find((a: any) => a.id === userId)) {
+      this.selectedAprobadores.push({ ...user, orden: this.selectedAprobadores.length + 1 });
+    }
+    event.target.value = '';
+  }
+
+  removeAprobador(index: number): void {
+    this.selectedAprobadores.splice(index, 1);
+    this.selectedAprobadores.forEach((a: any, i: number) => a.orden = i + 1);
+  }
+
+  moveAprobador(index: number, direction: number): void {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= this.selectedAprobadores.length) return;
+    const temp = this.selectedAprobadores[index];
+    this.selectedAprobadores[index] = this.selectedAprobadores[newIndex];
+    this.selectedAprobadores[newIndex] = temp;
+    this.selectedAprobadores.forEach((a: any, i: number) => a.orden = i + 1);
+  }
+
+  guardarAprobadores(): void {
+    if (this.selectedAprobadores.length === 0) return;
+    this.saving = true;
+
+    // Asignar aprobadores a todos los postulantes que tienen esta evaluación asignada
+    // Primero obtenemos los postulantes asignados
+    this.http.get<any[]>(`${this.apiUrl}/evaluaciones/resultados/0`).subscribe({
+      error: () => {
+        // Si no hay postulantes, guardamos para la evaluación genérica
+        this.saveAprobadoresGeneric();
+      },
+      next: () => {
+        this.saveAprobadoresGeneric();
+      }
+    });
+  }
+
+  private saveAprobadoresGeneric(): void {
+    // Guardamos los aprobadores y enviamos notificación
+    const aprobadores = this.selectedAprobadores.map((a: any, i: number) => ({
+      usuario_id: a.id,
+      orden: i + 1,
+    }));
+
+    // Usar el endpoint que asigna aprobadores (usamos postulante_id=0 como genérico para la evaluación)
+    // O mejor, enviamos directamente los emails de notificación
+    this.http.post<any>(`${this.apiUrl}/aprobadores/evaluacion/${this.aprobadoresEval.id}`, {
+      aprobadores,
+    }).subscribe({
+      next: () => {
+        this.aprobadoresModalOpen = false;
+        this.saving = false;
+        this.successMsg = 'Aprobadores asignados y notificados por correo';
+        setTimeout(() => this.successMsg = '', 4000);
+      },
+      error: (err) => {
+        this.saving = false;
+        this.error = err?.error?.detail || 'Error al guardar aprobadores';
+      },
     });
   }
 }
