@@ -8,7 +8,8 @@ class AprobadorPostulante(Base):
     __tablename__ = "aprobadores_postulante"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    postulante_id = Column(Integer, ForeignKey("postulantes.id"), nullable=False)
+    postulante_id = Column(Integer, ForeignKey("postulantes.id"), nullable=True)
+    evaluacion_id = Column(Integer, ForeignKey("evaluaciones.id"), nullable=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     orden = Column(Integer, nullable=False)
     estado = Column(String(20), default="pendiente")

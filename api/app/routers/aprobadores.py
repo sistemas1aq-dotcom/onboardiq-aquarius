@@ -41,28 +41,52 @@ def mis_pendientes(
     result = []
     for ap in mis_aprobaciones:
         # Check that all previous approvers (lower orden) have approved
-        anteriores = (
-            db.query(AprobadorPostulante)
-            .filter(
-                AprobadorPostulante.postulante_id == ap.postulante_id,
-                AprobadorPostulante.orden < ap.orden,
+        # Filter by evaluacion_id or postulante_id depending on which is set
+        if ap.evaluacion_id:
+            anteriores = (
+                db.query(AprobadorPostulante)
+                .filter(
+                    AprobadorPostulante.evaluacion_id == ap.evaluacion_id,
+                    AprobadorPostulante.postulante_id == ap.postulante_id,
+                    AprobadorPostulante.orden < ap.orden,
+                )
+                .all()
             )
-            .all()
-        )
-        todos_aprobados = all(a.estado == "aprobado" for a in anteriores)
+        else:
+            anteriores = (
+                db.query(AprobadorPostulante)
+                .filter(
+                    AprobadorPostulante.postulante_id == ap.postulante_id,
+                    AprobadorPostulante.orden < ap.orden,
+                )
+                .all()
+            )
+        todos_aprobados = all(a.estado == "aprobado" for a in anteriores) if anteriores else True
         if not todos_aprobados:
             continue
 
-        # Get postulante info
-        postulante = db.query(Postulante).filter(Postulante.id == ap.postulante_id).first()
+        # Get postulante info or evaluacion info
         nombre = ""
-        if postulante and postulante.usuario:
-            nombre = postulante.usuario.nombre
+        puesto = ""
+        estado_post = ""
+        if ap.postulante_id:
+            postulante = db.query(Postulante).filter(Postulante.id == ap.postulante_id).first()
+            if postulante:
+                usr = db.query(Usuario).filter(Usuario.id == postulante.usuario_id).first()
+                nombre = usr.nombre if usr else ""
+                puesto = postulante.puesto
+                estado_post = postulante.estado
+        elif ap.evaluacion_id:
+            from ..models.evaluacion import Evaluacion
+            ev = db.query(Evaluacion).filter(Evaluacion.id == ap.evaluacion_id).first()
+            nombre = ev.nombre if ev else "Evaluación"
+            puesto = ev.tipo if ev else ""
+            estado_post = "pendiente"
 
         result.append(
             PendienteResponse(
                 id=ap.id,
-                postulante_id=ap.postulante_id,
+                postulante_id=ap.postulante_id or 0,
                 usuario_id=ap.usuario_id,
                 orden=ap.orden,
                 estado=ap.estado,
@@ -292,6 +316,37 @@ def rechazar(
     return {"detail": "Rechazado exitosamente"}
 
 
+@router.get("/evaluacion/{evaluacion_id}")
+def get_aprobadores_evaluacion(
+    evaluacion_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """Lista aprobadores de una evaluación."""
+    aprobadores = (
+        db.query(AprobadorPostulante)
+        .filter(
+            AprobadorPostulante.evaluacion_id == evaluacion_id,
+            AprobadorPostulante.postulante_id == None,
+        )
+        .order_by(AprobadorPostulante.orden)
+        .all()
+    )
+    result = []
+    for ap in aprobadores:
+        usuario = db.query(Usuario).filter(Usuario.id == ap.usuario_id).first()
+        result.append({
+            "id": ap.id,
+            "usuario_id": ap.usuario_id,
+            "orden": ap.orden,
+            "estado": ap.estado,
+            "nombre": usuario.nombre if usuario else "",
+            "area": usuario.area if usuario else "",
+            "rol": usuario.rol if usuario else "",
+        })
+    return result
+
+
 @router.delete("/{postulante_id}/{aprobador_id}")
 def eliminar_aprobador(
     postulante_id: int,
@@ -326,31 +381,42 @@ def asignar_aprobadores_evaluacion(
     if not evaluacion:
         raise HTTPException(status_code=404, detail="Evaluación no encontrada")
 
-    # Obtener postulantes asignados a esta evaluación
+    # Eliminar aprobadores existentes de esta evaluación
+    db.query(AprobadorPostulante).filter(
+        AprobadorPostulante.evaluacion_id == evaluacion_id
+    ).delete()
+
+    # Insertar nuevos aprobadores vinculados a la evaluación
+    for ap in data.aprobadores:
+        nuevo = AprobadorPostulante(
+            evaluacion_id=evaluacion_id,
+            postulante_id=None,
+            usuario_id=ap.usuario_id,
+            orden=ap.orden,
+            estado="pendiente",
+        )
+        db.add(nuevo)
+
+    # También asignar a postulantes existentes de esta evaluación
     asignaciones = db.query(EvaluacionPostulante).filter(
         EvaluacionPostulante.evaluacion_id == evaluacion_id
     ).all()
-
-    postulante_ids = [a.postulante_id for a in asignaciones]
-
-    # Para cada postulante, asignar los aprobadores
-    for pid in postulante_ids:
-        # Eliminar aprobadores existentes
-        db.query(AprobadorPostulante).filter(
-            AprobadorPostulante.postulante_id == pid
-        ).delete()
-
-        # Insertar nuevos
+    for asig in asignaciones:
         for ap in data.aprobadores:
-            nuevo = AprobadorPostulante(
-                postulante_id=pid,
-                usuario_id=ap.usuario_id,
-                orden=ap.orden,
-                estado="pendiente",
-            )
-            db.add(nuevo)
+            existe = db.query(AprobadorPostulante).filter(
+                AprobadorPostulante.postulante_id == asig.postulante_id,
+                AprobadorPostulante.usuario_id == ap.usuario_id,
+            ).first()
+            if not existe:
+                nuevo = AprobadorPostulante(
+                    evaluacion_id=evaluacion_id,
+                    postulante_id=asig.postulante_id,
+                    usuario_id=ap.usuario_id,
+                    orden=ap.orden,
+                    estado="pendiente",
+                )
+                db.add(nuevo)
 
-    # Si no hay postulantes asignados, solo enviamos emails (no guardamos en BD)
     db.commit()
 
     # Enviar correo a cada aprobador

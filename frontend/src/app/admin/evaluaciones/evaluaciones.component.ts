@@ -696,12 +696,23 @@ export class EvaluacionesComponent implements OnInit {
     this.http.get<any[]>(`${this.apiUrl}/usuarios/`).subscribe({
       next: (users) => {
         this.allUsers = (users || []).filter((u: any) => u.rol !== 'postulante' && u.activo);
+
+        // Cargar aprobadores existentes de esta evaluación
+        this.http.get<any[]>(`${this.apiUrl}/aprobadores/evaluacion/${eval_.id}`).subscribe({
+          next: (aprobadores) => {
+            this.selectedAprobadores = (aprobadores || []).map((ap: any) => ({
+              id: ap.usuario_id,
+              nombre: ap.nombre,
+              area: ap.area,
+              rol: ap.rol,
+              orden: ap.orden,
+            }));
+          },
+          error: () => {},
+        });
       },
       error: () => { this.allUsers = []; },
     });
-
-    // Cargar aprobadores existentes para el primer postulante asignado a esta evaluación
-    // (los aprobadores se vinculan al postulante, cargamos si existe)
   }
 
   addAprobador(event: any): void {
