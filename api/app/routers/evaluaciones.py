@@ -90,12 +90,16 @@ def get_postulantes_evaluacion(
         nombre = usr.nombre if usr else ""
         dni = usr.dni if usr else ""
 
-        # Find the aprobador record for this postulante+evaluacion where current user is approver
+        # Find the aprobador record: first check postulante-specific, then evaluation-level (postulante_id=None)
+        from sqlalchemy import or_
         mi_aprobador = (
             db.query(AprobadorPostulante)
             .filter(
                 AprobadorPostulante.evaluacion_id == evaluacion_id,
-                AprobadorPostulante.postulante_id == ep.postulante_id,
+                or_(
+                    AprobadorPostulante.postulante_id == ep.postulante_id,
+                    AprobadorPostulante.postulante_id == None,
+                ),
                 AprobadorPostulante.usuario_id == current_user.id,
                 AprobadorPostulante.estado == "pendiente",
             )
@@ -110,7 +114,10 @@ def get_postulantes_evaluacion(
                 db.query(AprobadorPostulante)
                 .filter(
                     AprobadorPostulante.evaluacion_id == evaluacion_id,
-                    AprobadorPostulante.postulante_id == ep.postulante_id,
+                    or_(
+                        AprobadorPostulante.postulante_id == ep.postulante_id,
+                        AprobadorPostulante.postulante_id == None,
+                    ),
                     AprobadorPostulante.orden < mi_aprobador.orden,
                 )
                 .all()
@@ -120,12 +127,15 @@ def get_postulantes_evaluacion(
                 is_active_approver = True
                 aprobador_id = mi_aprobador.id
 
-        # Get all aprobadores for this postulante+evaluacion to show approval chain status
+        # Get all aprobadores: postulante-specific OR evaluation-level
         aprobadores_chain = (
             db.query(AprobadorPostulante)
             .filter(
                 AprobadorPostulante.evaluacion_id == evaluacion_id,
-                AprobadorPostulante.postulante_id == ep.postulante_id,
+                or_(
+                    AprobadorPostulante.postulante_id == ep.postulante_id,
+                    AprobadorPostulante.postulante_id == None,
+                ),
             )
             .order_by(AprobadorPostulante.orden)
             .all()
