@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, inject } from 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { DataTableComponent, TableColumn } from '../../shared/components/data-table/data-table.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
@@ -456,6 +456,7 @@ export class PostulantesComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private apiUrl = environment.apiUrl;
 
   @ViewChild('radarChartCanvas') radarChartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -648,7 +649,7 @@ export class PostulantesComponent implements OnInit {
 
   verLegajo(p: any): void {
     this.detailModalOpen = false;
-    window.location.hash = `/admin/legajo?id=${p.id}`;
+    this.router.navigate(['/admin/legajo'], { queryParams: { id: p.id } });
   }
 
   createPostulante(): void {

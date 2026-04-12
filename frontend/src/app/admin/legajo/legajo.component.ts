@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { ProgressBarComponent } from '../../shared/components/progress-bar/progress-bar.component';
 import { environment } from '../../../environments/environment';
@@ -383,6 +384,7 @@ import { environment } from '../../../environments/environment';
 })
 export class LegajoComponent implements OnInit {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
   private apiUrl = environment.apiUrl;
 
   searchTerm = '';
@@ -403,7 +405,21 @@ export class LegajoComponent implements OnInit {
     { key: 'capacitaciones', label: 'Capacitaciones' },
   ];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const id = params['id'];
+      if (id) {
+        this.loadingDetail = true;
+        this.http.get<any>(`${this.apiUrl}/postulantes/${id}`).subscribe({
+          next: (worker) => {
+            this.selectedWorker = worker;
+            this.loadLegajo(id);
+          },
+          error: () => { this.loadingDetail = false; },
+        });
+      }
+    });
+  }
 
   searchWorkers(): void {
     if (!this.searchTerm || this.searchTerm.length < 2) {
