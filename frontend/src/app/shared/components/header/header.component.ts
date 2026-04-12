@@ -29,6 +29,15 @@ import { environment } from '../../../../environments/environment';
 
       <!-- Right: User -->
       <div class="flex items-center gap-2 md:gap-4">
+        <!-- Help Button -->
+        <button
+          class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors text-sm font-bold"
+          (click)="openHelp.emit()"
+          title="Manual de Usuario"
+        >
+          ?
+        </button>
+
         <!-- Notifications -->
         <div class="relative">
           <button
@@ -126,6 +135,7 @@ export class HeaderComponent implements OnInit {
   @Input() breadcrumb: string = 'Dashboard';
   @Output() toggleSidebar = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
+  @Output() openHelp = new EventEmitter<void>();
 
   showNotifications = false;
   loadingNotifications = false;
