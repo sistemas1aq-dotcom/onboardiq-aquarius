@@ -93,8 +93,8 @@ def mis_pendientes(
                 comentario=ap.comentario,
                 fecha_accion=ap.fecha_accion,
                 postulante_nombre=nombre,
-                postulante_puesto=postulante.puesto if postulante else None,
-                postulante_estado=postulante.estado if postulante else None,
+                postulante_puesto=puesto,
+                postulante_estado=estado_post,
             )
         )
 
