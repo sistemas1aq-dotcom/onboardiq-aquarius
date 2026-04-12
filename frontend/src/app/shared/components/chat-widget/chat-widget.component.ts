@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, inject, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ChatService } from '../../../core/services/chat.service';
 
 @Component({
   selector: 'app-chat-widget',
@@ -234,9 +234,8 @@ import { AuthService } from '../../../core/services/auth.service';
   `,
 })
 export class ChatWidgetComponent implements OnInit, OnDestroy {
-  private http = inject(HttpClient);
+  private chatService = inject(ChatService);
   private authService = inject(AuthService);
-  private apiUrl = environment.apiUrl;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
@@ -265,24 +264,42 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   // Image viewer
   viewingImage = '';
 
-  // Polling
-  private pollInterval: any = null;
-  private unreadPollInterval: any = null;
-
   private currentUserId: number = 0;
+  private subscriptions: Subscription[] = [];
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id ?? 0;
-    this.loadConversations();
-    this.startUnreadPoll();
+
+    this.subscriptions.push(
+      this.chatService.conversations$.subscribe((convs) => {
+        this.conversations = convs;
+        this.loadingConversations = false;
+      }),
+      this.chatService.messages$.subscribe((msgs) => {
+        const hadMessages = this.messages.length > 0;
+        this.messages = msgs;
+        this.loadingMessages = false;
+        if (hadMessages || msgs.length > 0) {
+          this.scrollToBottom();
+        }
+      }),
+      this.chatService.unreadCount$.subscribe((count) => {
+        this.unreadCount = count;
+      }),
+      this.chatService.activeConversation$.subscribe((conv) => {
+        this.activeConversation = conv;
+      })
+    );
+
+    this.chatService.loadConversations();
+    this.chatService.loadUnreadCount();
+    this.chatService.startPolling();
   }
 
   ngOnDestroy(): void {
-    this.clearPolling();
-    if (this.unreadPollInterval) {
-      clearInterval(this.unreadPollInterval);
-    }
+    this.chatService.stopPolling();
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   togglePanel(): void {
@@ -290,26 +307,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     if (this.panelOpen) {
       this.currentView = 'list';
       this.showNewConversation = false;
-      this.loadConversations();
+      this.loadingConversations = true;
+      this.chatService.loadConversations();
     }
   }
 
   // --- Conversations ---
-
-  loadConversations(): void {
-    this.loadingConversations = true;
-    this.http.get<any[]>(`${this.apiUrl}/chat/conversaciones`).subscribe({
-      next: (data) => {
-        this.conversations = data ?? [];
-        this.unreadCount = this.conversations.reduce((sum: number, c: any) => sum + (c.no_leidos || 0), 0);
-        this.loadingConversations = false;
-      },
-      error: () => {
-        this.conversations = [];
-        this.loadingConversations = false;
-      },
-    });
-  }
 
   get filteredConversations(): any[] {
     if (!this.searchQuery.trim()) return this.conversations;
@@ -320,18 +323,17 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   openConversation(conv: any): void {
-    this.activeConversation = conv;
+    this.chatService.setActiveConversation(conv);
     this.currentView = 'messages';
     this.messages = [];
-    this.loadMessages();
-    this.startMessagePoll();
+    this.loadingMessages = true;
+    this.chatService.loadMessages(conv.id);
   }
 
   backToList(): void {
     this.currentView = 'list';
-    this.activeConversation = null;
-    this.clearPolling();
-    this.loadConversations();
+    this.chatService.setActiveConversation(null);
+    this.chatService.loadConversations();
   }
 
   // --- New Conversation ---
@@ -340,7 +342,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.showNewConversation = true;
     this.userSearchQuery = '';
     this.loadingUsers = true;
-    this.http.get<any[]>(`${this.apiUrl}/chat/usuarios`).subscribe({
+    this.chatService.loadUsers().subscribe({
       next: (data) => {
         this.users = data ?? [];
         this.loadingUsers = false;
@@ -359,19 +361,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   startConversation(user: any): void {
-    this.http.post<any>(`${this.apiUrl}/chat/conversaciones`, {
-      participante_ids: [user.id],
-      tipo: 'directo',
-    }).subscribe({
+    this.chatService.createConversation([user.id]).subscribe({
       next: (conv) => {
         this.showNewConversation = false;
-        this.loadConversations();
+        this.chatService.loadConversations();
         this.openConversation(conv);
       },
       error: (err) => {
-        // Si ya existe, buscar en las conversaciones existentes
         if (err.status === 400 || err.status === 409) {
-          this.loadConversations();
+          this.chatService.loadConversations();
           setTimeout(() => {
             const existing = this.conversations.find((c: any) =>
               c.nombre === user.nombre
@@ -388,21 +386,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   // --- Messages ---
 
-  loadMessages(): void {
-    if (!this.activeConversation) return;
-    this.loadingMessages = this.messages.length === 0;
-    this.http.get<any[]>(`${this.apiUrl}/chat/conversaciones/${this.activeConversation.id}/mensajes`).subscribe({
-      next: (data) => {
-        this.messages = data ?? [];
-        this.loadingMessages = false;
-        this.scrollToBottom();
-      },
-      error: () => {
-        this.loadingMessages = false;
-      },
-    });
-  }
-
   sendMessage(): void {
     if (!this.messageText.trim() && !this.selectedFile) return;
     if (!this.activeConversation) return;
@@ -412,10 +395,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const payload = { contenido: this.messageText.trim() };
+    const text = this.messageText.trim();
     this.messageText = '';
-    this.http.post<any>(`${this.apiUrl}/chat/conversaciones/${this.activeConversation.id}/mensajes`, payload).subscribe({
-      next: () => this.loadMessages(),
+    this.chatService.sendMessage(this.activeConversation.id, text).subscribe({
       error: () => {},
     });
   }
@@ -431,15 +413,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   private uploadFile(): void {
     if (!this.selectedFile || !this.activeConversation) return;
-    const formData = new FormData();
-    formData.append('archivo', this.selectedFile);
-    if (this.messageText.trim()) {
-      formData.append('contenido', this.messageText.trim());
-    }
+    const file = this.selectedFile;
+    const text = this.messageText.trim() || undefined;
     this.messageText = '';
     this.selectedFile = null;
-    this.http.post<any>(`${this.apiUrl}/chat/conversaciones/${this.activeConversation.id}/archivo`, formData).subscribe({
-      next: () => this.loadMessages(),
+    this.chatService.uploadFile(this.activeConversation.id, file, text).subscribe({
       error: () => {},
     });
   }
@@ -455,33 +433,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
   openImage(url: string): void {
     this.viewingImage = url;
-  }
-
-  // --- Polling ---
-
-  private startMessagePoll(): void {
-    this.clearPolling();
-    this.pollInterval = setInterval(() => this.loadMessages(), 5000);
-  }
-
-  private startUnreadPoll(): void {
-    this.unreadPollInterval = setInterval(() => {
-      if (!this.panelOpen) {
-        this.http.get<any[]>(`${this.apiUrl}/chat/conversaciones`).subscribe({
-          next: (data) => {
-            this.unreadCount = (data ?? []).reduce((sum: number, c: any) => sum + (c.no_leidos || 0), 0);
-          },
-          error: () => {},
-        });
-      }
-    }, 15000);
-  }
-
-  private clearPolling(): void {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
-    }
   }
 
   // --- Helpers ---

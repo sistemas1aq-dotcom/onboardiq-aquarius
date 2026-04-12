@@ -6,6 +6,7 @@ interface MenuItem {
   label: string;
   icon: string;
   route: string;
+  children?: MenuItem[];
 }
 
 const MENU_CONFIG: Record<string, MenuItem[]> = {
@@ -25,7 +26,10 @@ const MENU_CONFIG: Record<string, MenuItem[]> = {
     { label: 'Capacitaciones', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', route: '/admin/capacitaciones' },
     { label: 'Eval. Desempeno', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', route: '/admin/eval-desempeno' },
     { label: 'Mis Aprobaciones', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', route: '/admin/mis-aprobaciones' },
-    { label: 'Maestros', icon: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4', route: '/admin/maestros' },
+    { label: 'Maestros', icon: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4', route: '', children: [
+      { label: 'Areas', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', route: '/admin/areas' },
+      { label: 'Cargos', icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', route: '/admin/cargos' },
+    ]},
   ],
   evaluador: [
     { label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4', route: '/admin/dashboard' },
@@ -110,26 +114,79 @@ const ROLE_COLORS: Record<string, { bg: string; text: string; label: string }> =
 
       <!-- Menu Items -->
       <nav class="flex-1 overflow-y-auto px-2 py-2 space-y-1">
-        <a
-          *ngFor="let item of menuItems"
-          [routerLink]="item.route"
-          routerLinkActive="bg-white/15 text-white"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="flex items-center px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors group"
-          [title]="!showLabels ? item.label : ''"
-          (click)="onNavItemClick(item.route)"
-        >
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
-          </svg>
-          <span
-            class="ml-3 text-sm whitespace-nowrap overflow-hidden transition-all duration-300"
-            [class.w-0]="!showLabels"
-            [class.opacity-0]="!showLabels"
+        <ng-container *ngFor="let item of menuItems">
+          <!-- Item without children -->
+          <a
+            *ngIf="!item.children"
+            [routerLink]="item.route"
+            routerLinkActive="bg-white/15 text-white"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="flex items-center px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors group"
+            [title]="!showLabels ? item.label : ''"
+            (click)="onNavItemClick(item.route)"
           >
-            {{ item.label }}
-          </span>
-        </a>
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
+            </svg>
+            <span
+              class="ml-3 text-sm whitespace-nowrap overflow-hidden transition-all duration-300"
+              [class.w-0]="!showLabels"
+              [class.opacity-0]="!showLabels"
+            >
+              {{ item.label }}
+            </span>
+          </a>
+
+          <!-- Item with children (submenu) -->
+          <div *ngIf="item.children">
+            <button
+              (click)="toggleMenu(item.label)"
+              class="w-full flex items-center px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors group"
+              [title]="!showLabels ? item.label : ''"
+            >
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
+              </svg>
+              <span
+                class="ml-3 text-sm whitespace-nowrap overflow-hidden transition-all duration-300 flex-1 text-left"
+                [class.w-0]="!showLabels"
+                [class.opacity-0]="!showLabels"
+              >
+                {{ item.label }}
+              </span>
+              <svg
+                *ngIf="showLabels"
+                class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
+                [class.rotate-90]="expandedMenus[item.label]"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+            <div *ngIf="expandedMenus[item.label]" class="ml-4 mt-1 space-y-1">
+              <a
+                *ngFor="let child of item.children"
+                [routerLink]="child.route"
+                routerLinkActive="bg-white/15 text-white"
+                [routerLinkActiveOptions]="{ exact: false }"
+                class="flex items-center px-3 py-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors text-sm"
+                [title]="!showLabels ? child.label : ''"
+                (click)="onNavItemClick(child.route)"
+              >
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="child.icon"/>
+                </svg>
+                <span
+                  class="ml-3 whitespace-nowrap overflow-hidden transition-all duration-300"
+                  [class.w-0]="!showLabels"
+                  [class.opacity-0]="!showLabels"
+                >
+                  {{ child.label }}
+                </span>
+              </a>
+            </div>
+          </div>
+        </ng-container>
       </nav>
 
       <!-- Collapse Toggle (desktop only) -->
@@ -159,6 +216,11 @@ export class SidebarComponent implements OnInit {
   @Output() mobileClose = new EventEmitter<void>();
 
   isMobile: boolean = false;
+  expandedMenus: Record<string, boolean> = {};
+
+  toggleMenu(label: string): void {
+    this.expandedMenus[label] = !this.expandedMenus[label];
+  }
 
   ngOnInit(): void {
     this.checkScreenSize();

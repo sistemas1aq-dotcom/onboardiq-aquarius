@@ -83,9 +83,14 @@ export const ADMIN_ROUTES: Routes = [
           import('./mis-aprobaciones/mis-aprobaciones.component').then((m) => m.MisAprobacionesComponent)
       },
       {
-        path: 'maestros',
+        path: 'areas',
         loadComponent: () =>
-          import('./maestros/maestros.component').then((m) => m.MaestrosComponent)
+          import('./maestros/areas/areas.component').then((m) => m.AreasComponent)
+      },
+      {
+        path: 'cargos',
+        loadComponent: () =>
+          import('./maestros/cargos/cargos.component').then((m) => m.CargosComponent)
       }
     ]
   }
