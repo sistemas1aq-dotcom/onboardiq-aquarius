@@ -85,9 +85,9 @@ import { environment } from '../../../environments/environment';
                   class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >Asignar</button>
                 <button
-                  (click)="openAprobadoresModal(eval)"
-                  class="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                >Aprobadores</button>
+                  (click)="$event.stopPropagation(); openAprobadoresModal(eval)"
+                  class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                >👥 Aprobadores</button>
                 <button
                   (click)="openEditEvalModal(eval)"
                   class="px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
