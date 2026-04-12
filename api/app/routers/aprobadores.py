@@ -450,8 +450,7 @@ def asignar_aprobadores_evaluacion(
 
     return {
         "message": "Aprobadores asignados y notificados",
-        "postulantes_afectados": len(postulante_ids),
+        "postulantes_afectados": len(asignaciones),
         "aprobadores": len(data.aprobadores),
         "emails_enviados": enviados,
     }
-    return {"detail": "Aprobador eliminado"}
