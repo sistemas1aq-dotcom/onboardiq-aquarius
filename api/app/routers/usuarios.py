@@ -71,6 +71,7 @@ def create_usuario(
         dni=data.dni,
         rol=data.rol,
         telefono=data.telefono,
+        area=data.area,
     )
     db.add(usuario)
     db.commit()

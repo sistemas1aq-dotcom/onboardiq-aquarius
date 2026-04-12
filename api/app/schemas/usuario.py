@@ -21,6 +21,7 @@ class UsuarioBase(BaseModel):
     dni: Optional[str] = None
     rol: str
     telefono: Optional[str] = None
+    area: Optional[str] = None
 
 
 class UsuarioCreate(UsuarioBase):
@@ -33,6 +34,7 @@ class UsuarioUpdate(BaseModel):
     dni: Optional[str] = None
     rol: Optional[str] = None
     telefono: Optional[str] = None
+    area: Optional[str] = None
     activo: Optional[bool] = None
 
 

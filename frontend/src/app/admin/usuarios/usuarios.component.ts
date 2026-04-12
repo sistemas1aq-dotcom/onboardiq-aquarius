@@ -132,40 +132,132 @@ import { environment } from '../../../environments/environment';
         </div>
       </div>
 
+      <!-- Success Toast -->
+      <div *ngIf="successMsg" class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-sm font-medium">{{ successMsg }}</span>
+      </div>
+
+      <!-- Error Toast -->
+      <div *ngIf="errorMsg" class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-sm font-medium">{{ errorMsg }}</span>
+      </div>
+
       <!-- Create Modal -->
-      <app-modal [isOpen]="createModalOpen" title="Nuevo Usuario" size="md" (close)="createModalOpen = false">
-        <div class="space-y-1">
-          <app-form-field label="Nombre" [required]="true" placeholder="Nombre completo" [(ngModel)]="userForm.nombre"></app-form-field>
-          <app-form-field label="Email" type="email" [required]="true" placeholder="correo@empresa.com" [(ngModel)]="userForm.email"></app-form-field>
-          <app-form-field label="DNI" [required]="true" placeholder="DNI" [(ngModel)]="userForm.dni"></app-form-field>
-          <app-form-field label="Rol" type="select" [required]="true" [options]="roleOptions" [(ngModel)]="userForm.rol"></app-form-field>
-          <app-form-field label="Telefono" placeholder="999999999" [(ngModel)]="userForm.telefono"></app-form-field>
-          <app-form-field label="Contrasena" type="password" [required]="true" placeholder="Minimo 8 caracteres" [(ngModel)]="userForm.password"></app-form-field>
+      <div *ngIf="createModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" (click)="createModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">Nuevo Usuario</h3>
+            <button (click)="createModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+          </div>
+          <div class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
+              <input type="text" [(ngModel)]="userForm.nombre" placeholder="Nombre completo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <input type="email" [(ngModel)]="userForm.email" placeholder="correo@empresa.com" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">DNI *</label>
+                <input type="text" [(ngModel)]="userForm.dni" placeholder="12345678" maxlength="8" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
+                <select [(ngModel)]="userForm.rol" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                  <option value="">Seleccionar...</option>
+                  <option value="admin">Administrador</option>
+                  <option value="evaluador">Evaluador</option>
+                  <option value="postulante">Postulante</option>
+                  <option value="trabajador">Trabajador</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <input type="text" [(ngModel)]="userForm.telefono" placeholder="999999999" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Área</label>
+                <select [(ngModel)]="userForm.area" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                  <option value="">Seleccionar...</option>
+                  <option *ngFor="let a of areas" [value]="a">{{ a }}</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+              <input type="password" [(ngModel)]="userForm.password" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button (click)="createModalOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
+              <button (click)="createUser()" [disabled]="saving" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                {{ saving ? 'Creando...' : 'Crear Usuario' }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-          <button (click)="createModalOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
-          <button (click)="createUser()" [disabled]="saving" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
-            {{ saving ? 'Guardando...' : 'Crear Usuario' }}
-          </button>
-        </div>
-      </app-modal>
+      </div>
 
       <!-- Edit Modal -->
-      <app-modal [isOpen]="editModalOpen" title="Editar Usuario" size="md" (close)="editModalOpen = false">
-        <div class="space-y-1">
-          <app-form-field label="Nombre" [required]="true" placeholder="Nombre completo" [(ngModel)]="userForm.nombre"></app-form-field>
-          <app-form-field label="Email" type="email" [required]="true" placeholder="correo@empresa.com" [(ngModel)]="userForm.email"></app-form-field>
-          <app-form-field label="DNI" [required]="true" placeholder="DNI" [(ngModel)]="userForm.dni"></app-form-field>
-          <app-form-field label="Rol" type="select" [required]="true" [options]="roleOptions" [(ngModel)]="userForm.rol"></app-form-field>
-          <app-form-field label="Telefono" placeholder="999999999" [(ngModel)]="userForm.telefono"></app-form-field>
+      <div *ngIf="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" (click)="editModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">Editar Usuario</h3>
+            <button (click)="editModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+          </div>
+          <div class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
+              <input type="text" [(ngModel)]="userForm.nombre" placeholder="Nombre completo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <input type="email" [(ngModel)]="userForm.email" placeholder="correo@empresa.com" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+                <input type="text" [(ngModel)]="userForm.dni" placeholder="12345678" maxlength="8" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
+                <select [(ngModel)]="userForm.rol" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                  <option value="admin">Administrador</option>
+                  <option value="evaluador">Evaluador</option>
+                  <option value="postulante">Postulante</option>
+                  <option value="trabajador">Trabajador</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <input type="text" [(ngModel)]="userForm.telefono" placeholder="999999999" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Área</label>
+                <select [(ngModel)]="userForm.area" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                  <option value="">Seleccionar...</option>
+                  <option *ngFor="let a of areas" [value]="a">{{ a }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button (click)="editModalOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
+              <button (click)="updateUser()" [disabled]="saving" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-          <button (click)="editModalOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
-          <button (click)="updateUser()" [disabled]="saving" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
-            {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
-          </button>
-        </div>
-      </app-modal>
+      </div>
     </div>
   `,
 })
@@ -180,12 +272,16 @@ export class UsuariosComponent implements OnInit {
   currentPage = 1;
   pageSize = 8;
 
+  successMsg = '';
+  errorMsg = '';
   users: any[] = [];
   createModalOpen = false;
   editModalOpen = false;
   editingUser: any = null;
 
-  userForm: any = { nombre: '', email: '', dni: '', rol: '', password: '', telefono: '' };
+  userForm: any = { nombre: '', email: '', dni: '', rol: '', password: '', telefono: '', area: '' };
+
+  areas = ['Gerencia General', 'Recursos Humanos', 'Marketing', 'Finanzas', 'Contabilidad', 'Legal', 'Tecnología', 'Operaciones', 'Logística', 'Ventas', 'Producción', 'Calidad', 'Seguridad y Salud', 'Administración', 'Proyectos'];
 
   roleOptions = [
     { value: 'admin', label: 'Administrador' },
@@ -241,12 +337,15 @@ export class UsuariosComponent implements OnInit {
 
   openEditModal(user: any): void {
     this.editingUser = user;
-    this.userForm = { nombre: user.nombre, email: user.email, dni: user.dni, rol: user.rol, telefono: user.telefono || '', password: '' };
+    this.userForm = { nombre: user.nombre, email: user.email, dni: user.dni, rol: user.rol, telefono: user.telefono || '', area: user.area || '', password: '' };
     this.editModalOpen = true;
   }
 
   createUser(): void {
-    if (!this.userForm.nombre || !this.userForm.email || !this.userForm.password || !this.userForm.rol) return;
+    if (!this.userForm.nombre || !this.userForm.email || !this.userForm.password || !this.userForm.rol) {
+      this.showError('Complete todos los campos obligatorios');
+      return;
+    }
     this.saving = true;
     const payload = {
       email: this.userForm.email,
@@ -255,16 +354,18 @@ export class UsuariosComponent implements OnInit {
       dni: this.userForm.dni,
       rol: this.userForm.rol,
       telefono: this.userForm.telefono,
+      area: this.userForm.area || null,
     };
     this.http.post<any>(`${this.apiUrl}/usuarios/`, payload).subscribe({
-      next: (created) => {
-        this.users.push(created);
+      next: () => {
         this.createModalOpen = false;
         this.saving = false;
+        this.showSuccess('Usuario creado exitosamente');
+        this.loadUsers();
       },
       error: (err) => {
-        console.error('Create user error:', err);
         this.saving = false;
+        this.showError(err?.error?.detail || 'Error al crear usuario');
       },
     });
   }
@@ -272,16 +373,17 @@ export class UsuariosComponent implements OnInit {
   updateUser(): void {
     if (!this.editingUser || !this.userForm.nombre || !this.userForm.email) return;
     this.saving = true;
-    const body: any = { nombre: this.userForm.nombre, email: this.userForm.email, dni: this.userForm.dni, rol: this.userForm.rol, telefono: this.userForm.telefono };
+    const body: any = { nombre: this.userForm.nombre, email: this.userForm.email, dni: this.userForm.dni, rol: this.userForm.rol, telefono: this.userForm.telefono, area: this.userForm.area || null };
     this.http.put<any>(`${this.apiUrl}/usuarios/${this.editingUser.id}`, body).subscribe({
-      next: (updated) => {
-        Object.assign(this.editingUser, updated);
+      next: () => {
         this.editModalOpen = false;
         this.saving = false;
+        this.showSuccess('Usuario actualizado exitosamente');
+        this.loadUsers();
       },
       error: (err) => {
-        console.error('Update user error:', err);
         this.saving = false;
+        this.showError(err?.error?.detail || 'Error al actualizar usuario');
       },
     });
   }
@@ -289,10 +391,21 @@ export class UsuariosComponent implements OnInit {
   toggleActive(user: any): void {
     const newState = !user.activo;
     this.http.put<any>(`${this.apiUrl}/usuarios/${user.id}`, { activo: newState }).subscribe({
-      next: (updated) => {
-        Object.assign(user, updated);
+      next: () => {
+        this.showSuccess(newState ? 'Usuario activado' : 'Usuario desactivado');
+        this.loadUsers();
       },
-      error: (err) => console.error('Toggle error:', err),
+      error: (err) => this.showError(err?.error?.detail || 'Error al cambiar estado'),
     });
+  }
+
+  private showSuccess(msg: string): void {
+    this.successMsg = msg;
+    setTimeout(() => this.successMsg = '', 3000);
+  }
+
+  private showError(msg: string): void {
+    this.errorMsg = msg;
+    setTimeout(() => this.errorMsg = '', 4000);
   }
 }

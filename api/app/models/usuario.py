@@ -13,6 +13,7 @@ class Usuario(Base):
     dni = Column(String(20), unique=True, index=True)
     rol = Column(String(20), nullable=False)  # admin, evaluador, postulante, trabajador
     telefono = Column(String(20))
+    area = Column(String(100))
     activo = Column(Boolean, default=True)
     fecha_creacion = Column(DateTime, server_default=func.now())
     ultimo_acceso = Column(DateTime)
