@@ -729,36 +729,20 @@ export class EvaluacionesComponent implements OnInit {
   guardarAprobadores(): void {
     if (this.selectedAprobadores.length === 0) return;
     this.saving = true;
+    this.error = '';
 
-    // Asignar aprobadores a todos los postulantes que tienen esta evaluación asignada
-    // Primero obtenemos los postulantes asignados
-    this.http.get<any[]>(`${this.apiUrl}/evaluaciones/resultados/0`).subscribe({
-      error: () => {
-        // Si no hay postulantes, guardamos para la evaluación genérica
-        this.saveAprobadoresGeneric();
-      },
-      next: () => {
-        this.saveAprobadoresGeneric();
-      }
-    });
-  }
-
-  private saveAprobadoresGeneric(): void {
-    // Guardamos los aprobadores y enviamos notificación
     const aprobadores = this.selectedAprobadores.map((a: any, i: number) => ({
       usuario_id: a.id,
       orden: i + 1,
     }));
 
-    // Usar el endpoint que asigna aprobadores (usamos postulante_id=0 como genérico para la evaluación)
-    // O mejor, enviamos directamente los emails de notificación
     this.http.post<any>(`${this.apiUrl}/aprobadores/evaluacion/${this.aprobadoresEval.id}`, {
       aprobadores,
     }).subscribe({
-      next: () => {
+      next: (res) => {
         this.aprobadoresModalOpen = false;
         this.saving = false;
-        this.successMsg = 'Aprobadores asignados y notificados por correo';
+        this.successMsg = `Aprobadores asignados y ${res.emails_enviados} correos enviados`;
         setTimeout(() => this.successMsg = '', 4000);
       },
       error: (err) => {
