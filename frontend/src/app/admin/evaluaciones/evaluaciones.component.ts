@@ -689,6 +689,8 @@ export class EvaluacionesComponent implements OnInit {
     this.aprobadoresEval = eval_;
     this.selectedAprobadores = [];
     this.aprobadoresModalOpen = true;
+    this.error = '';
+    this.successMsg = '';
 
     // Cargar usuarios (todos menos postulantes)
     this.http.get<any[]>(`${this.apiUrl}/usuarios/`).subscribe({

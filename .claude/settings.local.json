@@ -177,7 +177,8 @@
       "Bash(curl -s https://aquariusrecursos.vercel.app/main*.js)",
       "Bash(curl -s \"https://aquariusrecursos.vercel.app\")",
       "Bash(gh repo:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(curl -s https://aquariusrecursos.vercel.app/chunk-*.js)"
     ]
   }
 }
