@@ -72,6 +72,7 @@ def create_usuario(
         rol=data.rol,
         telefono=data.telefono,
         area=data.area,
+        cargo=data.cargo,
     )
     db.add(usuario)
     db.commit()
@@ -100,6 +101,11 @@ def update_usuario(
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     update_data = data.model_dump(exclude_unset=True)
+
+    # Handle password change
+    new_password = update_data.pop("password", None)
+    if new_password:
+        usuario.password_hash = hash_password(new_password)
 
     if "email" in update_data and update_data["email"] != usuario.email:
         existing = db.query(Usuario).filter(Usuario.email == update_data["email"]).first()

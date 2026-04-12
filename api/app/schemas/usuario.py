@@ -22,6 +22,7 @@ class UsuarioBase(BaseModel):
     rol: str
     telefono: Optional[str] = None
     area: Optional[str] = None
+    cargo: Optional[str] = None
 
 
 class UsuarioCreate(UsuarioBase):
@@ -35,11 +36,14 @@ class UsuarioUpdate(BaseModel):
     rol: Optional[str] = None
     telefono: Optional[str] = None
     area: Optional[str] = None
+    cargo: Optional[str] = None
     activo: Optional[bool] = None
+    password: Optional[str] = None
 
 
 class UsuarioResponse(UsuarioBase):
     id: int
+    cargo: Optional[str] = None
     activo: bool
     fecha_creacion: Optional[datetime] = None
     ultimo_acceso: Optional[datetime] = None

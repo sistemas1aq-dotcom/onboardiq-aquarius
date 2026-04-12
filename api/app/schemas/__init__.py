@@ -14,3 +14,4 @@ from .comunicacion import *
 from .evaluacion_desempeno import *
 from .chat import *
 from .aprobador import *
+from .maestro import *
