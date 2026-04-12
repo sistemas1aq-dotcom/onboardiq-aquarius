@@ -1,13 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-mis-aprobaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   template: `
     <div>
       <div class="flex items-center justify-between mb-6">
@@ -23,21 +23,19 @@ import { environment } from '../../../environments/environment';
         </button>
       </div>
 
+      <!-- Summary -->
+      <div *ngIf="!loading && pendientes.length > 0" class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+        <p class="text-sm font-medium text-amber-800">
+          Tienes {{ pendientes.length }} aprobaci{{ pendientes.length === 1 ? 'on' : 'ones' }} pendiente{{ pendientes.length === 1 ? '' : 's' }}
+        </p>
+      </div>
+
       <!-- Loading -->
       <div *ngIf="loading" class="flex items-center justify-center py-20">
         <div class="flex flex-col items-center gap-3">
           <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
           <span class="text-sm text-gray-500">Cargando...</span>
         </div>
-      </div>
-
-      <!-- Toast -->
-      <div
-        *ngIf="toast"
-        class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all"
-        [ngClass]="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'"
-      >
-        {{ toast.message }}
       </div>
 
       <!-- Empty state -->
@@ -61,7 +59,7 @@ import { environment } from '../../../environments/environment';
               <p class="text-xs text-gray-500 mt-0.5">{{ p.postulante_puesto || 'Sin puesto' }}</p>
             </div>
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-              Orden #{{ p.orden }}
+              Nivel #{{ p.orden }}
             </span>
           </div>
 
@@ -69,65 +67,21 @@ import { environment } from '../../../environments/environment';
             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
               Tu turno
             </span>
-            <span *ngIf="p.postulante_estado" class="text-xs text-gray-400">
-              Estado postulante: {{ p.postulante_estado }}
+            <span *ngIf="p.evaluacion_nombre" class="text-xs text-gray-400">
+              {{ p.evaluacion_nombre }}
             </span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button
-              (click)="openAccionModal(p, 'aprobar')"
-              class="flex-1 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Aprobar
-            </button>
-            <button
-              (click)="openAccionModal(p, 'rechazar')"
-              class="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Rechazar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Accion Modal -->
-      <div *ngIf="accionModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="accionModalOpen = false"></div>
-        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 z-10">
-          <h3 class="text-lg font-semibold text-gray-900 mb-1">
-            {{ accionTipo === 'aprobar' ? 'Confirmar Aprobacion' : 'Confirmar Rechazo' }}
-          </h3>
-          <p class="text-sm text-gray-500 mb-4">
-            {{ accionItem?.postulante_nombre }} - {{ accionItem?.postulante_puesto }}
-          </p>
-
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Comentario (opcional)</label>
-            <textarea
-              [(ngModel)]="comentario"
-              rows="3"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
-              placeholder="Agregar un comentario..."
-            ></textarea>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <button
-              (click)="accionModalOpen = false"
-              class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              (click)="confirmarAccion()"
-              [disabled]="procesando"
-              class="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
-              [ngClass]="accionTipo === 'aprobar' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'"
-            >
-              {{ procesando ? 'Procesando...' : (accionTipo === 'aprobar' ? 'Aprobar' : 'Rechazar') }}
-            </button>
-          </div>
+          <button
+            (click)="verPostulante(p.postulante_id)"
+            class="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            Ver Postulante
+          </button>
         </div>
       </div>
     </div>
@@ -135,16 +89,11 @@ import { environment } from '../../../environments/environment';
 })
 export class MisAprobacionesComponent implements OnInit {
   private http = inject(HttpClient);
+  private router = inject(Router);
   private apiUrl = environment.apiUrl;
 
   loading = true;
   pendientes: any[] = [];
-  accionModalOpen = false;
-  accionTipo: 'aprobar' | 'rechazar' = 'aprobar';
-  accionItem: any = null;
-  comentario = '';
-  procesando = false;
-  toast: { message: string; type: 'success' | 'error' } | null = null;
 
   ngOnInit(): void {
     this.loadPendientes();
@@ -165,40 +114,7 @@ export class MisAprobacionesComponent implements OnInit {
     });
   }
 
-  openAccionModal(item: any, tipo: 'aprobar' | 'rechazar'): void {
-    this.accionItem = item;
-    this.accionTipo = tipo;
-    this.comentario = '';
-    this.accionModalOpen = true;
-  }
-
-  confirmarAccion(): void {
-    if (!this.accionItem || this.procesando) return;
-    this.procesando = true;
-
-    const url = `${this.apiUrl}/aprobadores/${this.accionItem.id}/${this.accionTipo}`;
-    const body = this.comentario ? { comentario: this.comentario } : {};
-
-    this.http.post(url, body).subscribe({
-      next: () => {
-        this.showToast(
-          this.accionTipo === 'aprobar' ? 'Aprobacion registrada exitosamente' : 'Rechazo registrado exitosamente',
-          'success'
-        );
-        this.accionModalOpen = false;
-        this.procesando = false;
-        this.loadPendientes();
-      },
-      error: (err) => {
-        console.error('Error procesando accion:', err);
-        this.showToast(err.error?.detail || 'Error al procesar la accion', 'error');
-        this.procesando = false;
-      },
-    });
-  }
-
-  private showToast(message: string, type: 'success' | 'error'): void {
-    this.toast = { message, type };
-    setTimeout(() => (this.toast = null), 3000);
+  verPostulante(postulanteId: number): void {
+    this.router.navigate(['/admin/postulantes'], { queryParams: { detail: postulanteId } });
   }
 }

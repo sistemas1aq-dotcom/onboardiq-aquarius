@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, inject } from 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { DataTableComponent, TableColumn } from '../../shared/components/data-table/data-table.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
@@ -128,16 +129,6 @@ import { AuthService } from '../../core/services/auth.service';
                         (click)="$event.stopPropagation(); openDetailModal(p)"
                         class="text-blue-600 hover:text-blue-800 text-xs font-medium"
                       >Ver</button>
-                      <button
-                        *ngIf="p.estado === 'En Evaluacion'"
-                        (click)="$event.stopPropagation(); aprobarPostulante(p)"
-                        class="text-green-600 hover:text-green-800 text-xs font-medium"
-                      >Aprobar</button>
-                      <button
-                        *ngIf="p.estado === 'En Evaluacion'"
-                        (click)="$event.stopPropagation(); rechazarPostulante(p)"
-                        class="text-red-600 hover:text-red-800 text-xs font-medium"
-                      >Rechazar</button>
                     </div>
                   </td>
                 </tr>
@@ -170,8 +161,52 @@ import { AuthService } from '../../core/services/auth.service';
       </div>
 
       <!-- Detail Modal -->
-      <app-modal [isOpen]="detailModalOpen" [title]="selectedPostulante?.nombre || 'Detalle'" size="lg" (close)="detailModalOpen = false">
+      <app-modal [isOpen]="detailModalOpen" [title]="selectedPostulante?.nombre || 'Detalle'" size="lg" (close)="closeDetailModal()">
         <div *ngIf="selectedPostulante">
+          <!-- Approval Banner - shown when current user is the active approver -->
+          <div *ngIf="miAprobacionActiva && !aprobacionAccionTipo" class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+            <p class="text-sm text-green-800 font-medium">Tienes una aprobacion pendiente para este postulante (Nivel {{ miAprobacionActiva.orden }})</p>
+            <div class="flex gap-3 mt-3">
+              <button
+                (click)="iniciarAprobacion('aprobar')"
+                class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+              >Aprobar</button>
+              <button
+                (click)="iniciarAprobacion('rechazar')"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >Rechazar</button>
+            </div>
+          </div>
+
+          <!-- Approval Comment Form -->
+          <div *ngIf="aprobacionAccionTipo" class="rounded-xl p-4 mb-4 border"
+            [ngClass]="aprobacionAccionTipo === 'aprobar' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'">
+            <p class="text-sm font-medium mb-2"
+              [ngClass]="aprobacionAccionTipo === 'aprobar' ? 'text-green-800' : 'text-red-800'">
+              {{ aprobacionAccionTipo === 'aprobar' ? 'Confirmar Aprobacion' : 'Confirmar Rechazo' }}
+            </p>
+            <textarea
+              [(ngModel)]="aprobacionComentario"
+              rows="3"
+              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none bg-white"
+              placeholder="Comentario (opcional)..."
+            ></textarea>
+            <div class="flex gap-2 mt-3">
+              <button
+                (click)="confirmarAprobacion()"
+                [disabled]="procesandoAprobacion"
+                class="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
+                [ngClass]="aprobacionAccionTipo === 'aprobar' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'"
+              >
+                {{ procesandoAprobacion ? 'Procesando...' : (aprobacionAccionTipo === 'aprobar' ? 'Confirmar Aprobacion' : 'Confirmar Rechazo') }}
+              </button>
+              <button
+                (click)="cancelarAprobacion()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >Cancelar</button>
+            </div>
+          </div>
+
           <!-- Info Grid -->
           <div class="grid grid-cols-2 gap-4 mb-6">
             <div>
@@ -260,20 +295,6 @@ import { AuthService } from '../../core/services/auth.service';
                 </span>
               </div>
             </div>
-            <!-- Inline approve/reject if current user is active approver -->
-            <div *ngIf="miAprobacionActiva" class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p class="text-sm font-medium text-amber-800 mb-2">Es tu turno de aprobar</p>
-              <div class="flex items-center gap-2">
-                <button
-                  (click)="aprobarComoAprobador()"
-                  class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                >Aprobar</button>
-                <button
-                  (click)="rechazarComoAprobador()"
-                  class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                >Rechazar</button>
-              </div>
-            </div>
             <!-- Approval history/timeline -->
             <div *ngIf="aprobadoresConAccion.length > 0" class="mt-3">
               <h5 class="text-xs font-semibold text-gray-500 uppercase mb-2">Historial</h5>
@@ -291,16 +312,6 @@ import { AuthService } from '../../core/services/auth.service';
 
           <!-- Action Buttons -->
           <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
-            <button
-              *ngIf="selectedPostulante.estado === 'En Evaluacion'"
-              (click)="aprobarPostulante(selectedPostulante); detailModalOpen = false"
-              class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-            >Aprobar</button>
-            <button
-              *ngIf="selectedPostulante.estado === 'En Evaluacion'"
-              (click)="rechazarPostulante(selectedPostulante); detailModalOpen = false"
-              class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-            >Rechazar</button>
             <button
               *ngIf="selectedPostulante.estado === 'Trabajador'"
               (click)="verLegajo(selectedPostulante)"
@@ -444,6 +455,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class PostulantesComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
   private apiUrl = environment.apiUrl;
 
   @ViewChild('radarChartCanvas') radarChartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -496,6 +508,11 @@ export class PostulantesComponent implements OnInit {
   chainAprobadores: any[] = [];
   savingAprobadores = false;
 
+  // Approval flow in detail modal
+  aprobacionAccionTipo: 'aprobar' | 'rechazar' | null = null;
+  aprobacionComentario = '';
+  procesandoAprobacion = false;
+
   successMsg = '';
   errorMsg = '';
 
@@ -510,6 +527,28 @@ export class PostulantesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPostulantes();
+    this.route.queryParams.subscribe((params) => {
+      const detailId = params['detail'];
+      if (detailId) {
+        this.openDetailById(+detailId);
+      }
+    });
+  }
+
+  private openDetailById(postulanteId: number): void {
+    // If postulantes already loaded, find and open
+    const found = this.postulantes.find((p: any) => p.id === postulanteId);
+    if (found) {
+      this.openDetailModal(found);
+    } else {
+      // Load single postulante by id
+      this.http.get<any>(`${this.apiUrl}/postulantes/${postulanteId}`).subscribe({
+        next: (p) => {
+          if (p) this.openDetailModal(p);
+        },
+        error: () => {},
+      });
+    }
   }
 
   loadPostulantes(): void {
@@ -604,29 +643,6 @@ export class PostulantesComponent implements OnInit {
           legend: { display: false },
         },
       },
-    });
-  }
-
-  aprobarPostulante(p: any): void {
-    this.http.put(`${this.apiUrl}/postulantes/${p.id}/estado`, null, {
-      params: { estado: 'Aprobado' }
-    }).subscribe({
-      next: () => {
-        p.estado = 'Aprobado';
-      },
-      error: (err) => console.error('Error aprobando:', err),
-    });
-  }
-
-  rechazarPostulante(p: any): void {
-    const comentario = prompt('Motivo de rechazo (opcional):') || '';
-    this.http.put(`${this.apiUrl}/postulantes/${p.id}/estado`, null, {
-      params: { estado: 'Rechazado', ...(comentario ? { comentario } : {}) }
-    }).subscribe({
-      next: () => {
-        p.estado = 'Rechazado';
-      },
-      error: (err) => console.error('Error rechazando:', err),
     });
   }
 
@@ -774,28 +790,45 @@ export class PostulantesComponent implements OnInit {
     });
   }
 
-  aprobarComoAprobador(): void {
-    if (!this.miAprobacionActiva) return;
-    const comentario = prompt('Comentario (opcional):') || '';
-    this.http.post(`${this.apiUrl}/aprobadores/${this.miAprobacionActiva.id}/aprobar`, { comentario }).subscribe({
+  iniciarAprobacion(tipo: 'aprobar' | 'rechazar'): void {
+    this.aprobacionAccionTipo = tipo;
+    this.aprobacionComentario = '';
+  }
+
+  cancelarAprobacion(): void {
+    this.aprobacionAccionTipo = null;
+    this.aprobacionComentario = '';
+  }
+
+  confirmarAprobacion(): void {
+    if (!this.miAprobacionActiva || !this.aprobacionAccionTipo || this.procesandoAprobacion) return;
+    this.procesandoAprobacion = true;
+
+    const url = `${this.apiUrl}/aprobadores/${this.miAprobacionActiva.id}/${this.aprobacionAccionTipo}`;
+    const body = this.aprobacionComentario ? { comentario: this.aprobacionComentario } : {};
+
+    this.http.post(url, body).subscribe({
       next: () => {
+        this.showSuccess(
+          this.aprobacionAccionTipo === 'aprobar' ? 'Aprobacion registrada exitosamente' : 'Rechazo registrado exitosamente'
+        );
+        this.aprobacionAccionTipo = null;
+        this.aprobacionComentario = '';
+        this.procesandoAprobacion = false;
         if (this.selectedPostulante) this.loadAprobadores(this.selectedPostulante.id);
         this.loadPostulantes();
       },
-      error: (err) => console.error('Error aprobando:', err),
+      error: (err) => {
+        this.showError(err.error?.detail || 'Error al procesar la accion');
+        this.procesandoAprobacion = false;
+      },
     });
   }
 
-  rechazarComoAprobador(): void {
-    if (!this.miAprobacionActiva) return;
-    const comentario = prompt('Motivo de rechazo (opcional):') || '';
-    this.http.post(`${this.apiUrl}/aprobadores/${this.miAprobacionActiva.id}/rechazar`, { comentario }).subscribe({
-      next: () => {
-        if (this.selectedPostulante) this.loadAprobadores(this.selectedPostulante.id);
-        this.loadPostulantes();
-      },
-      error: (err) => console.error('Error rechazando:', err),
-    });
+  closeDetailModal(): void {
+    this.detailModalOpen = false;
+    this.aprobacionAccionTipo = null;
+    this.aprobacionComentario = '';
   }
 
   private showSuccess(msg: string): void {
