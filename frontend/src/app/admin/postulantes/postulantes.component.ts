@@ -231,10 +231,13 @@ import { AuthService } from '../../core/services/auth.service';
                 class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
               >Configurar Aprobadores</button>
             </div>
-            <div *ngIf="aprobadores.length === 0" class="text-sm text-gray-400 bg-gray-50 rounded-lg p-4 text-center">
+            <div *ngIf="aprobadoresLoading" class="flex items-center justify-center py-6">
+              <div class="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <div *ngIf="!aprobadoresLoading && aprobadores.length === 0" class="text-sm text-gray-400 bg-gray-50 rounded-lg p-4 text-center">
               No hay aprobadores asignados
             </div>
-            <div *ngIf="aprobadores.length > 0" class="space-y-2">
+            <div *ngIf="!aprobadoresLoading && aprobadores.length > 0" class="space-y-2">
               <div *ngFor="let ap of aprobadores" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                 <span class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                   {{ ap.orden }}
@@ -345,7 +348,10 @@ import { AuthService } from '../../core/services/auth.service';
             </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div *ngIf="configAprobadoresLoading" class="flex items-center justify-center py-12">
+            <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          </div>
+          <div *ngIf="!configAprobadoresLoading" class="grid grid-cols-2 gap-4">
             <!-- Left: Available users -->
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">Usuarios Disponibles</h4>
@@ -421,6 +427,17 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
         </div>
       </div>
+      <!-- Success Toast -->
+      <div *ngIf="successMsg" class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-sm font-medium">{{ successMsg }}</span>
+      </div>
+
+      <!-- Error Toast -->
+      <div *ngIf="errorMsg" class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-sm font-medium">{{ errorMsg }}</span>
+      </div>
     </div>
   `,
 })
@@ -471,11 +488,16 @@ export class PostulantesComponent implements OnInit {
 
   // Aprobadores
   aprobadores: any[] = [];
+  aprobadoresLoading = false;
+  configAprobadoresLoading = false;
   miAprobacionActiva: any = null;
   configAprobadoresOpen = false;
   availableUsers: any[] = [];
   chainAprobadores: any[] = [];
   savingAprobadores = false;
+
+  successMsg = '';
+  errorMsg = '';
 
   get totalPages(): number {
     return Math.ceil(this.filteredPostulantes.length / this.pageSize);
@@ -617,15 +639,15 @@ export class PostulantesComponent implements OnInit {
     if (!this.newPostulante.usuario_id || !this.newPostulante.puesto) return;
     this.saving = true;
     this.http.post<any>(`${this.apiUrl}/postulantes/`, this.newPostulante).subscribe({
-      next: (created) => {
-        this.postulantes.unshift(created);
-        this.filterData();
+      next: () => {
         this.createModalOpen = false;
         this.saving = false;
+        this.showSuccess('Postulante creado exitosamente');
+        this.loadPostulantes();
       },
       error: (err) => {
-        console.error('Error creando postulante:', err);
         this.saving = false;
+        this.showError(err?.error?.detail || 'Error al crear postulante');
       },
     });
   }
@@ -635,13 +657,16 @@ export class PostulantesComponent implements OnInit {
   loadAprobadores(postulanteId: number): void {
     this.aprobadores = [];
     this.miAprobacionActiva = null;
+    this.aprobadoresLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/aprobadores/${postulanteId}`).subscribe({
       next: (data) => {
         this.aprobadores = data ?? [];
+        this.aprobadoresLoading = false;
         this.checkMiAprobacion();
       },
       error: () => {
         this.aprobadores = [];
+        this.aprobadoresLoading = false;
       },
     });
   }
@@ -684,14 +709,17 @@ export class PostulantesComponent implements OnInit {
       }));
 
     // Load available users
+    this.configAprobadoresLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/usuarios/`, { params: { rol: 'admin,evaluador' } }).subscribe({
       next: (users) => {
         this.availableUsers = (users ?? []).filter(
           (u: any) => !this.chainAprobadores.some((c: any) => c.usuario_id === u.id)
         );
+        this.configAprobadoresLoading = false;
       },
       error: () => {
         this.availableUsers = [];
+        this.configAprobadoresLoading = false;
       },
     });
 
@@ -736,11 +764,12 @@ export class PostulantesComponent implements OnInit {
       next: () => {
         this.configAprobadoresOpen = false;
         this.savingAprobadores = false;
+        this.showSuccess('Aprobadores guardados exitosamente');
         this.loadAprobadores(this.selectedPostulante.id);
       },
       error: (err) => {
-        console.error('Error guardando aprobadores:', err);
         this.savingAprobadores = false;
+        this.showError(err?.error?.detail || 'Error al guardar aprobadores');
       },
     });
   }
@@ -767,5 +796,15 @@ export class PostulantesComponent implements OnInit {
       },
       error: (err) => console.error('Error rechazando:', err),
     });
+  }
+
+  private showSuccess(msg: string): void {
+    this.successMsg = msg;
+    setTimeout(() => this.successMsg = '', 3000);
+  }
+
+  private showError(msg: string): void {
+    this.errorMsg = msg;
+    setTimeout(() => this.errorMsg = '', 4000);
   }
 }

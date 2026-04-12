@@ -189,6 +189,10 @@ import { environment } from '../../../environments/environment';
             <button (click)="selectorModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
           </div>
           <div class="px-6 py-4 space-y-4">
+            <div *ngIf="selectorModalLoading" class="flex items-center justify-center py-8">
+              <div class="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <div *ngIf="!selectorModalLoading">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Postulante</label>
               <select [(ngModel)]="selectedPostulanteId" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
@@ -201,6 +205,7 @@ import { environment } from '../../../environments/environment';
               <button (click)="sendSelectorAction()" [disabled]="!selectedPostulanteId || sendingAction" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {{ sendingAction ? 'Enviando...' : 'Enviar' }}
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -231,6 +236,7 @@ export class ComunicacionesComponent implements OnInit {
 
   // Selector modal
   selectorModalOpen = false;
+  selectorModalLoading = false;
   selectorTitle = '';
   selectorAction: 'bienvenida' | 'cesado' = 'bienvenida';
   selectedPostulanteId = '';
@@ -352,7 +358,7 @@ export class ComunicacionesComponent implements OnInit {
     this.selectorAction = 'bienvenida';
     this.selectedPostulanteId = '';
     this.selectorModalOpen = true;
-    this.loadPostulantes();
+    this.loadPostulantesForSelector();
   }
 
   openCesadoModal(): void {
@@ -360,16 +366,19 @@ export class ComunicacionesComponent implements OnInit {
     this.selectorAction = 'cesado';
     this.selectedPostulanteId = '';
     this.selectorModalOpen = true;
-    this.loadPostulantes();
+    this.loadPostulantesForSelector();
   }
 
-  private loadPostulantes(): void {
+  private loadPostulantesForSelector(): void {
+    this.selectorModalLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/postulantes/`).subscribe({
       next: (data) => {
         this.postulantesOptions = data ?? [];
+        this.selectorModalLoading = false;
       },
       error: () => {
         this.postulantesOptions = [];
+        this.selectorModalLoading = false;
       },
     });
   }

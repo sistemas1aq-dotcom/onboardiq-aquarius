@@ -98,6 +98,10 @@ import { environment } from '../../../environments/environment';
             <button (click)="newModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
           </div>
           <div class="px-6 py-4 space-y-4">
+            <div *ngIf="newModalLoading" class="flex items-center justify-center py-8">
+              <div class="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <div *ngIf="!newModalLoading">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Trabajador</label>
               <select [(ngModel)]="newEval.trabajador_id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
@@ -123,6 +127,7 @@ import { environment } from '../../../environments/environment';
               <button (click)="createEvaluacion()" [disabled]="saving || !newEval.trabajador_id || !newEval.periodo || !newEval.tipo" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {{ saving ? 'Creando...' : 'Crear' }}
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -233,6 +238,7 @@ export class EvalDesempenoComponent implements OnInit {
 
   // New eval modal
   newModalOpen = false;
+  newModalLoading = false;
   trabajadores: any[] = [];
   newEval = { trabajador_id: '', periodo: '', tipo: '' };
 
@@ -278,9 +284,10 @@ export class EvalDesempenoComponent implements OnInit {
   openNewModal(): void {
     this.newEval = { trabajador_id: '', periodo: '', tipo: '' };
     this.newModalOpen = true;
+    this.newModalLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/postulantes/?estado=Trabajador`).subscribe({
-      next: (data) => (this.trabajadores = data ?? []),
-      error: () => (this.trabajadores = []),
+      next: (data) => { this.trabajadores = data ?? []; this.newModalLoading = false; },
+      error: () => { this.trabajadores = []; this.newModalLoading = false; },
     });
   }
 

@@ -247,6 +247,10 @@ import { environment } from '../../../environments/environment';
           </div>
           <div class="px-6 py-4 space-y-4">
             <p class="text-sm text-gray-600">Asignar <strong>{{ assignEval?.nombre }}</strong> a un postulante:</p>
+            <div *ngIf="assignLoading" class="flex items-center justify-center py-8">
+              <div class="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <div *ngIf="!assignLoading">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Postulante</label>
               <select [(ngModel)]="assignPostulanteId" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
@@ -259,6 +263,7 @@ import { environment } from '../../../environments/environment';
               <button (click)="assignEvaluacion()" [disabled]="saving" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {{ saving ? 'Asignando...' : 'Asignar' }}
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -331,6 +336,12 @@ import { environment } from '../../../environments/environment';
           <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
             <p class="text-sm text-gray-500 mb-4">Seleccione los aprobadores para la evaluación <strong>{{ aprobadoresEval?.nombre }}</strong>. El orden va de menor a mayor importancia.</p>
 
+            <!-- Loading spinner -->
+            <div *ngIf="aprobadoresLoading" class="flex items-center justify-center py-12">
+              <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+
+            <div *ngIf="!aprobadoresLoading">
             <!-- Usuarios disponibles -->
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-2">Agregar Aprobador</label>
@@ -371,6 +382,7 @@ import { environment } from '../../../environments/environment';
               <button (click)="guardarAprobadores()" [disabled]="saving || selectedAprobadores.length === 0" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50">
                 {{ saving ? 'Guardando...' : 'Guardar y Notificar' }}
               </button>
+            </div>
             </div>
           </div>
         </div>
@@ -420,10 +432,14 @@ export class EvaluacionesComponent implements OnInit {
 
   // Aprobadores
   aprobadoresModalOpen = false;
+  aprobadoresLoading = false;
   aprobadoresEval: any = null;
   allUsers: any[] = [];
   selectedAprobadores: any[] = [];
   successMsg = '';
+
+  // Assign
+  assignLoading = false;
 
   get availableAprobadores(): any[] {
     const selectedIds = this.selectedAprobadores.map((a: any) => a.id);
@@ -538,14 +554,11 @@ export class EvaluacionesComponent implements OnInit {
       : this.http.post<any>(url, payload);
 
     req.subscribe({
-      next: (result) => {
-        if (this.editingEval) {
-          Object.assign(this.editingEval, result);
-        } else {
-          this.evaluaciones.unshift(result);
-        }
+      next: () => {
         this.evalModalOpen = false;
         this.saving = false;
+        this.showSuccess(this.editingEval ? 'Evaluacion actualizada' : 'Evaluacion creada');
+        this.loadData();
       },
       error: (err) => {
         this.error = 'Error al guardar evaluacion.';
@@ -570,13 +583,15 @@ export class EvaluacionesComponent implements OnInit {
     this.assignEval = evalItem;
     this.assignPostulanteId = '';
     this.assignModalOpen = true;
+    this.assignLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/postulantes/`).subscribe({
       next: (data) => {
         this.postulantesOptions = (data ?? [])
           .filter((p: any) => p.estado === 'En Evaluacion' || p.estado === 'Nuevo')
           .map((p: any) => ({ value: p.id, label: `${p.nombre} - ${p.dni}` }));
+        this.assignLoading = false;
       },
-      error: () => (this.postulantesOptions = []),
+      error: () => { this.postulantesOptions = []; this.assignLoading = false; },
     });
   }
 
@@ -590,10 +605,11 @@ export class EvaluacionesComponent implements OnInit {
       next: () => {
         this.assignModalOpen = false;
         this.saving = false;
+        this.showSuccess('Evaluacion asignada exitosamente');
       },
       error: (err) => {
-        console.error('Assign error:', err);
         this.saving = false;
+        this.showError(err?.error?.detail || 'Error al asignar evaluacion');
       },
     });
   }
@@ -655,15 +671,12 @@ export class EvaluacionesComponent implements OnInit {
       : this.http.post<any>(url, payload);
 
     req.subscribe({
-      next: (result) => {
-        if (this.editingPregunta) {
-          const idx = this.filteredPreguntas.findIndex((p) => p.id === this.editingPregunta.id);
-          if (idx >= 0) this.filteredPreguntas[idx] = result;
-        } else {
-          this.filteredPreguntas.push(result);
-        }
+      next: () => {
         this.preguntaModalOpen = false;
         this.saving = false;
+        this.showSuccess(this.editingPregunta ? 'Pregunta actualizada' : 'Pregunta creada');
+        this.loadPreguntasForEval();
+        this.loadData();
       },
       error: (err) => {
         this.error = 'Error al guardar pregunta.';
@@ -689,6 +702,7 @@ export class EvaluacionesComponent implements OnInit {
     this.aprobadoresEval = eval_;
     this.selectedAprobadores = [];
     this.aprobadoresModalOpen = true;
+    this.aprobadoresLoading = true;
     this.error = '';
     this.successMsg = '';
 
@@ -707,11 +721,12 @@ export class EvaluacionesComponent implements OnInit {
               rol: ap.rol,
               orden: ap.orden,
             }));
+            this.aprobadoresLoading = false;
           },
-          error: () => {},
+          error: () => { this.aprobadoresLoading = false; },
         });
       },
-      error: () => { this.allUsers = []; },
+      error: () => { this.allUsers = []; this.aprobadoresLoading = false; },
     });
   }
 
@@ -737,6 +752,16 @@ export class EvaluacionesComponent implements OnInit {
     this.selectedAprobadores[index] = this.selectedAprobadores[newIndex];
     this.selectedAprobadores[newIndex] = temp;
     this.selectedAprobadores.forEach((a: any, i: number) => a.orden = i + 1);
+  }
+
+  private showSuccess(msg: string): void {
+    this.successMsg = msg;
+    setTimeout(() => this.successMsg = '', 3000);
+  }
+
+  private showError(msg: string): void {
+    this.error = msg;
+    setTimeout(() => this.error = '', 4000);
   }
 
   guardarAprobadores(): void {

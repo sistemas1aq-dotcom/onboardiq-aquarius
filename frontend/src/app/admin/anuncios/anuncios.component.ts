@@ -282,16 +282,11 @@ export class AnunciosComponent implements OnInit {
       : this.http.post<any>(url, payload);
 
     req.subscribe({
-      next: (result) => {
-        if (this.editingAnuncio) {
-          const idx = this.anuncios.findIndex(a => a.id === this.editingAnuncio.id);
-          if (idx >= 0) this.anuncios[idx] = result;
-        } else {
-          this.anuncios.unshift(result);
-        }
-        this.applyFilter();
+      next: () => {
         this.modalOpen = false;
         this.saving = false;
+        this.showSuccess(this.editingAnuncio ? 'Anuncio actualizado exitosamente' : 'Anuncio creado exitosamente');
+        this.loadAnuncios();
       },
       error: (err) => {
         this.error = 'Error al guardar anuncio.';
@@ -305,8 +300,8 @@ export class AnunciosComponent implements OnInit {
     if (!confirm('Eliminar este anuncio?')) return;
     this.http.delete(`${this.apiUrl}/anuncios/${anuncio.id}`).subscribe({
       next: () => {
-        this.anuncios = this.anuncios.filter(a => a.id !== anuncio.id);
-        this.applyFilter();
+        this.showSuccess('Anuncio eliminado');
+        this.loadAnuncios();
       },
       error: (err) => console.error('Error eliminando anuncio:', err),
     });

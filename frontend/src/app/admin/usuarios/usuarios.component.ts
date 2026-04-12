@@ -224,6 +224,10 @@ import { environment } from '../../../environments/environment';
             <button (click)="editModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
           </div>
           <div class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div *ngIf="modalLoading" class="flex items-center justify-center py-12">
+              <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <div *ngIf="!modalLoading">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
               <input type="text" [(ngModel)]="userForm.nombre" placeholder="Nombre completo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
@@ -277,6 +281,7 @@ import { environment } from '../../../environments/environment';
                 {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
               </button>
             </div>
+            </div>
           </div>
         </div>
       </div>
@@ -289,6 +294,7 @@ export class UsuariosComponent implements OnInit {
 
   loading = true;
   saving = false;
+  modalLoading = false;
   error = '';
   searchTerm = '';
   currentPage = 1;
@@ -393,16 +399,17 @@ export class UsuariosComponent implements OnInit {
       password: '',
     };
     this.cargosForArea = [];
+    this.editModalOpen = true;
     if (user.area) {
       const area = this.areas.find((a) => a.nombre === user.area);
       if (area) {
+        this.modalLoading = true;
         this.http.get<any[]>(`${this.apiUrl}/maestros/cargos-por-area/${area.id}`).subscribe({
-          next: (data) => (this.cargosForArea = data ?? []),
-          error: () => {},
+          next: (data) => { this.cargosForArea = data ?? []; this.modalLoading = false; },
+          error: () => { this.modalLoading = false; },
         });
       }
     }
-    this.editModalOpen = true;
   }
 
   createUser(): void {
