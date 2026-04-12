@@ -51,6 +51,8 @@ class PendienteResponse(BaseModel):
     postulante_nombre: Optional[str] = None
     postulante_puesto: Optional[str] = None
     postulante_estado: Optional[str] = None
+    evaluacion_id: Optional[int] = None
+    evaluacion_nombre: Optional[str] = None
 
     class Config:
         from_attributes = True

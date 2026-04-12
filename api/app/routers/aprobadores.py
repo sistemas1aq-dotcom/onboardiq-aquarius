@@ -83,6 +83,14 @@ def mis_pendientes(
             puesto = ev.tipo if ev else ""
             estado_post = "pendiente"
 
+        # Get evaluacion name if available
+        eval_id = ap.evaluacion_id
+        eval_nombre = None
+        if eval_id:
+            from ..models.evaluacion import Evaluacion as EvalModel
+            ev_obj = db.query(EvalModel).filter(EvalModel.id == eval_id).first()
+            eval_nombre = ev_obj.nombre if ev_obj else None
+
         result.append(
             PendienteResponse(
                 id=ap.id,
@@ -95,6 +103,8 @@ def mis_pendientes(
                 postulante_nombre=nombre,
                 postulante_puesto=puesto,
                 postulante_estado=estado_post,
+                evaluacion_id=eval_id,
+                evaluacion_nombre=eval_nombre,
             )
         )
 

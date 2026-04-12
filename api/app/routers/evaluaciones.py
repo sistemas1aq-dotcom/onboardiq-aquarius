@@ -62,6 +62,103 @@ def list_evaluaciones(
     return result
 
 
+@router.get("/{evaluacion_id}/postulantes")
+def get_postulantes_evaluacion(
+    evaluacion_id: int,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """Get all postulantes assigned to this evaluation with their scores and approval info."""
+    from ..models.aprobador import AprobadorPostulante
+
+    evaluacion = db.query(Evaluacion).filter(Evaluacion.id == evaluacion_id).first()
+    if not evaluacion:
+        raise HTTPException(status_code=404, detail="Evaluacion no encontrada")
+
+    asignaciones = (
+        db.query(EvaluacionPostulante)
+        .filter(EvaluacionPostulante.evaluacion_id == evaluacion_id)
+        .all()
+    )
+
+    result = []
+    for ep in asignaciones:
+        postulante = db.query(Postulante).filter(Postulante.id == ep.postulante_id).first()
+        if not postulante:
+            continue
+        usr = db.query(Usuario).filter(Usuario.id == postulante.usuario_id).first()
+        nombre = usr.nombre if usr else ""
+        dni = usr.dni if usr else ""
+
+        # Find the aprobador record for this postulante+evaluacion where current user is approver
+        mi_aprobador = (
+            db.query(AprobadorPostulante)
+            .filter(
+                AprobadorPostulante.evaluacion_id == evaluacion_id,
+                AprobadorPostulante.postulante_id == ep.postulante_id,
+                AprobadorPostulante.usuario_id == current_user.id,
+                AprobadorPostulante.estado == "pendiente",
+            )
+            .first()
+        )
+
+        # Check if this user is the active approver (all previous levels approved)
+        is_active_approver = False
+        aprobador_id = None
+        if mi_aprobador:
+            anteriores = (
+                db.query(AprobadorPostulante)
+                .filter(
+                    AprobadorPostulante.evaluacion_id == evaluacion_id,
+                    AprobadorPostulante.postulante_id == ep.postulante_id,
+                    AprobadorPostulante.orden < mi_aprobador.orden,
+                )
+                .all()
+            )
+            todos_aprobados = all(a.estado == "aprobado" for a in anteriores) if anteriores else True
+            if todos_aprobados:
+                is_active_approver = True
+                aprobador_id = mi_aprobador.id
+
+        # Get all aprobadores for this postulante+evaluacion to show approval chain status
+        aprobadores_chain = (
+            db.query(AprobadorPostulante)
+            .filter(
+                AprobadorPostulante.evaluacion_id == evaluacion_id,
+                AprobadorPostulante.postulante_id == ep.postulante_id,
+            )
+            .order_by(AprobadorPostulante.orden)
+            .all()
+        )
+        chain = []
+        for ap in aprobadores_chain:
+            ap_user = db.query(Usuario).filter(Usuario.id == ap.usuario_id).first()
+            chain.append({
+                "id": ap.id,
+                "usuario_nombre": ap_user.nombre if ap_user else "",
+                "orden": ap.orden,
+                "estado": ap.estado,
+                "comentario": ap.comentario,
+            })
+
+        result.append({
+            "postulante_id": ep.postulante_id,
+            "nombre": nombre,
+            "dni": dni,
+            "puesto": postulante.puesto,
+            "puntaje_obtenido": ep.puntaje_obtenido,
+            "estado": ep.estado,
+            "fecha_asignacion": ep.fecha_asignacion.isoformat() if ep.fecha_asignacion else None,
+            "fecha_completado": ep.fecha_completado.isoformat() if ep.fecha_completado else None,
+            "evaluacion_postulante_id": ep.id,
+            "is_active_approver": is_active_approver,
+            "aprobador_id": aprobador_id,
+            "aprobadores": chain,
+        })
+
+    return result
+
+
 @router.get("/{evaluacion_id}", response_model=EvaluacionResponse)
 def get_evaluacion(
     evaluacion_id: int,

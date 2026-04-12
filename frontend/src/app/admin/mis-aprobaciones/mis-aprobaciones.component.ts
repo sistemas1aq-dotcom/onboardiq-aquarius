@@ -73,14 +73,13 @@ import { environment } from '../../../environments/environment';
           </div>
 
           <button
-            (click)="verPostulante(p.postulante_id)"
+            (click)="verEvaluacion(p)"
             class="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
-            Ver Postulante
+            Ver Evaluacion
           </button>
         </div>
       </div>
@@ -114,7 +113,11 @@ export class MisAprobacionesComponent implements OnInit {
     });
   }
 
-  verPostulante(postulanteId: number): void {
-    this.router.navigate(['/admin/postulantes'], { queryParams: { detail: postulanteId } });
+  verEvaluacion(pendiente: any): void {
+    if (pendiente.evaluacion_id) {
+      this.router.navigate(['/admin/evaluaciones'], { queryParams: { detail: pendiente.evaluacion_id } });
+    } else {
+      this.router.navigate(['/admin/postulantes'], { queryParams: { detail: pendiente.postulante_id } });
+    }
   }
 }
