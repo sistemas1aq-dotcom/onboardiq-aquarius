@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api'
+  apiUrl: 'https://onboardiq-api-production-3f30.up.railway.app/api'
 };
