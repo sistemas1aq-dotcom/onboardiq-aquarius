@@ -322,30 +322,61 @@ import { AuthService } from '../../core/services/auth.service';
       </app-modal>
 
       <!-- Create Modal -->
-      <app-modal [isOpen]="createModalOpen" title="Nuevo Postulante" size="lg" (close)="createModalOpen = false">
-        <div class="grid grid-cols-2 gap-4">
-          <app-form-field label="Usuario (ID)" type="number" [required]="true" placeholder="ID del usuario" [(ngModel)]="newPostulante.usuario_id"></app-form-field>
-          <app-form-field label="Puesto" [required]="true" placeholder="Puesto al que postula" [(ngModel)]="newPostulante.puesto"></app-form-field>
-          <app-form-field label="Estado" type="select" [options]="estadoOptions" [(ngModel)]="newPostulante.estado"></app-form-field>
-          <app-form-field label="Riesgo" type="select" [options]="riesgoOptions" [(ngModel)]="newPostulante.riesgo"></app-form-field>
-          <div class="col-span-2">
-            <app-form-field label="Comentarios" type="textarea" placeholder="Comentarios adicionales..." [(ngModel)]="newPostulante.comentarios"></app-form-field>
+      <div *ngIf="createModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" (click)="createModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">Nuevo Postulante</h3>
+            <button (click)="createModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+          </div>
+          <div class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div *ngIf="createLoading" class="flex items-center justify-center py-8">
+              <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            </div>
+            <div *ngIf="!createLoading">
+              <p class="text-xs text-gray-400 mb-4">Se creará automáticamente el usuario con rol Postulante. La contraseña por defecto es: <strong>Aquarius2026</strong></p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
+                  <input type="text" [(ngModel)]="newPostulante.nombre" placeholder="Nombre y apellidos" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input type="email" [(ngModel)]="newPostulante.email" placeholder="correo@email.com" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">DNI *</label>
+                  <input type="text" [(ngModel)]="newPostulante.dni" placeholder="12345678" maxlength="8" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                  <input type="text" [(ngModel)]="newPostulante.telefono" placeholder="999999999" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Área *</label>
+                  <select [(ngModel)]="newPostulante.area" (ngModelChange)="onCreateAreaChange()" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                    <option value="">Seleccionar área...</option>
+                    <option *ngFor="let a of createAreas" [value]="a.nombre">{{ a.nombre }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Cargo (Puesto al que postula) *</label>
+                  <select [(ngModel)]="newPostulante.cargo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                    <option value="">Seleccionar cargo...</option>
+                    <option *ngFor="let c of createCargos" [value]="c.nombre">{{ c.nombre }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button (click)="createModalOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
+              <button (click)="createPostulante()" [disabled]="saving" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                {{ saving ? 'Creando...' : 'Crear Postulante' }}
+              </button>
+            </div>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-          <button
-            (click)="createModalOpen = false"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >Cancelar</button>
-          <button
-            (click)="createPostulante()"
-            [disabled]="saving"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            {{ saving ? 'Guardando...' : 'Guardar' }}
-          </button>
-        </div>
-      </app-modal>
+      </div>
       <!-- Configurar Aprobadores Modal (inline) -->
       <div *ngIf="configAprobadoresOpen" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" (click)="configAprobadoresOpen = false"></div>
@@ -479,12 +510,11 @@ export class PostulantesComponent implements OnInit {
   selectedPostulante: any = null;
 
   newPostulante: any = {
-    usuario_id: null,
-    puesto: '',
-    estado: 'En Evaluacion',
-    riesgo: 'bajo',
-    comentarios: '',
+    nombre: '', email: '', dni: '', telefono: '', area: '', cargo: '',
   };
+  createAreas: any[] = [];
+  createCargos: any[] = [];
+  createLoading = false;
 
   estadoOptions = [
     { value: 'En Evaluacion', label: 'En Evaluacion' },
@@ -595,14 +625,29 @@ export class PostulantesComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.newPostulante = {
-      usuario_id: null,
-      puesto: '',
-      estado: 'En Evaluacion',
-      riesgo: 'bajo',
-      comentarios: '',
-    };
+    this.newPostulante = { nombre: '', email: '', dni: '', telefono: '', area: '', cargo: '' };
     this.createModalOpen = true;
+    this.createLoading = true;
+    this.http.get<any[]>(`${this.apiUrl}/maestros/areas`).subscribe({
+      next: (data) => {
+        this.createAreas = data ?? [];
+        this.createLoading = false;
+      },
+      error: () => { this.createAreas = []; this.createLoading = false; },
+    });
+  }
+
+  onCreateAreaChange(): void {
+    this.newPostulante.cargo = '';
+    this.createCargos = [];
+    if (!this.newPostulante.area) return;
+    const area = this.createAreas.find((a: any) => a.nombre === this.newPostulante.area);
+    if (area) {
+      this.http.get<any[]>(`${this.apiUrl}/maestros/cargos-por-area/${area.id}`).subscribe({
+        next: (data) => { this.createCargos = data ?? []; },
+        error: () => { this.createCargos = []; },
+      });
+    }
   }
 
   private initRadarChart(): void {
@@ -653,13 +698,25 @@ export class PostulantesComponent implements OnInit {
   }
 
   createPostulante(): void {
-    if (!this.newPostulante.usuario_id || !this.newPostulante.puesto) return;
+    if (!this.newPostulante.nombre || !this.newPostulante.email || !this.newPostulante.dni || !this.newPostulante.cargo) {
+      this.showError('Complete todos los campos obligatorios');
+      return;
+    }
     this.saving = true;
-    this.http.post<any>(`${this.apiUrl}/postulantes/`, this.newPostulante).subscribe({
-      next: () => {
+    const payload = {
+      nombre: this.newPostulante.nombre,
+      email: this.newPostulante.email,
+      dni: this.newPostulante.dni,
+      telefono: this.newPostulante.telefono || null,
+      area: this.newPostulante.area || null,
+      cargo: this.newPostulante.cargo,
+      puesto: this.newPostulante.cargo,  // El cargo es el puesto al que postula
+    };
+    this.http.post<any>(`${this.apiUrl}/postulantes/completo`, payload).subscribe({
+      next: (res) => {
         this.createModalOpen = false;
         this.saving = false;
-        this.showSuccess('Postulante creado exitosamente');
+        this.showSuccess(`Postulante ${res.nombre} creado exitosamente (ID: ${res.usuario_id}). Contraseña: Aquarius2026`);
         this.loadPostulantes();
       },
       error: (err) => {

@@ -10,7 +10,9 @@ from ..schemas.postulante import (
     PostulanteResponse,
 )
 from ..auth.dependencies import get_current_user
+from ..auth.password import hash_password
 from ..services.auditoria import log_action
+from pydantic import BaseModel
 
 router = APIRouter(tags=["Postulantes"])
 
@@ -125,6 +127,78 @@ def create_postulante(
         comentarios=postulante.comentarios,
         fecha_registro=postulante.fecha_registro,
     )
+
+
+class PostulanteCompletoCreate(BaseModel):
+    nombre: str
+    email: str
+    dni: str
+    telefono: Optional[str] = None
+    area: Optional[str] = None
+    cargo: Optional[str] = None
+    puesto: str
+    password: Optional[str] = None
+
+
+@router.post("/completo", status_code=status.HTTP_201_CREATED)
+def create_postulante_completo(
+    data: PostulanteCompletoCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """Crea usuario tipo postulante + postulante en una sola llamada."""
+    # Verificar email duplicado
+    if db.query(Usuario).filter(Usuario.email == data.email).first():
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
+    # Verificar DNI duplicado
+    if data.dni and db.query(Usuario).filter(Usuario.dni == data.dni).first():
+        raise HTTPException(status_code=400, detail="El DNI ya está registrado")
+
+    # Crear usuario
+    pwd = data.password or "Aquarius2026"
+    usuario = Usuario(
+        email=data.email,
+        password_hash=hash_password(pwd),
+        nombre=data.nombre,
+        dni=data.dni,
+        rol="postulante",
+        telefono=data.telefono,
+        area=data.area,
+        cargo=data.cargo,
+    )
+    db.add(usuario)
+    db.flush()  # Get ID without committing
+
+    # Crear postulante
+    postulante = Postulante(
+        usuario_id=usuario.id,
+        puesto=data.puesto,
+        estado="En Evaluacion",
+        riesgo="bajo",
+        area=data.area,
+    )
+    db.add(postulante)
+    db.commit()
+    db.refresh(usuario)
+    db.refresh(postulante)
+
+    log_action(
+        db, current_user.id, "crear_postulante_completo",
+        f"Usuario {usuario.id} ({data.email}) y Postulante {postulante.id} creados",
+        request.client.host if request.client else None,
+    )
+
+    return {
+        "usuario_id": usuario.id,
+        "postulante_id": postulante.id,
+        "nombre": usuario.nombre,
+        "email": usuario.email,
+        "dni": usuario.dni,
+        "puesto": postulante.puesto,
+        "estado": postulante.estado,
+        "message": f"Postulante creado exitosamente. Contraseña: {pwd}",
+    }
 
 
 @router.put("/{postulante_id}", response_model=PostulanteResponse)
