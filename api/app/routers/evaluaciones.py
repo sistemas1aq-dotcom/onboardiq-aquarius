@@ -260,6 +260,11 @@ def delete_evaluacion(
     evaluacion = db.query(Evaluacion).filter(Evaluacion.id == evaluacion_id).first()
     if not evaluacion:
         raise HTTPException(status_code=404, detail="Evaluacion no encontrada")
+    # Borrar dependencias primero
+    db.query(Pregunta).filter(Pregunta.evaluacion_id == evaluacion_id).delete()
+    db.query(EvaluacionPostulante).filter(EvaluacionPostulante.evaluacion_id == evaluacion_id).delete()
+    from ..models.aprobador import AprobadorPostulante
+    db.query(AprobadorPostulante).filter(AprobadorPostulante.evaluacion_id == evaluacion_id).delete()
     db.delete(evaluacion)
     db.commit()
     return {"message": "Evaluacion eliminada correctamente"}
