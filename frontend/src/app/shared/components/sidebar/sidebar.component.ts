@@ -31,13 +31,6 @@ const MENU_CONFIG: Record<string, MenuItem[]> = {
       { label: 'Cargos', icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', route: '/admin/cargos' },
     ]},
   ],
-  evaluador: [
-    { label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4', route: '/admin/dashboard' },
-    { label: 'Mis Postulantes', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', route: '/admin/postulantes' },
-    { label: 'Evaluar', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', route: '/admin/evaluaciones' },
-    { label: 'Legajo Trabajador', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4', route: '/admin/legajo' },
-    { label: 'Mis Aprobaciones', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', route: '/admin/mis-aprobaciones' },
-  ],
   postulante: [
     { label: 'Inicio', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4', route: '/portal/inicio' },
     { label: 'Mi Ficha', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', route: '/portal/ficha' },
@@ -59,7 +52,6 @@ const MENU_CONFIG: Record<string, MenuItem[]> = {
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   admin: { bg: 'bg-red-900', text: 'text-red-300', label: 'Administrador' },
-  evaluador: { bg: 'bg-yellow-900', text: 'text-yellow-300', label: 'Evaluador' },
   postulante: { bg: 'bg-cyan-900', text: 'text-cyan-300', label: 'Postulante' },
   trabajador: { bg: 'bg-green-900', text: 'text-green-300', label: 'Trabajador' },
 };

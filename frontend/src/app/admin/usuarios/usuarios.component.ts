@@ -90,7 +90,7 @@ import { environment } from '../../../environments/environment';
                       'bg-purple-50 text-purple-700': user.rol === 'admin',
                       'bg-blue-50 text-blue-700': user.rol === 'reclutador',
                       'bg-gray-50 text-gray-700': user.rol === 'auditor',
-                      'bg-green-50 text-green-700': user.rol === 'evaluador'
+                      'bg-green-50 text-green-700': user.rol === 'trabajador'
                     }">
                     {{ user.rol | titlecase }}
                   </span>
@@ -175,7 +175,6 @@ import { environment } from '../../../environments/environment';
                 <select [(ngModel)]="userForm.rol" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                   <option value="">Seleccionar...</option>
                   <option value="admin">Administrador</option>
-                  <option value="evaluador">Evaluador</option>
                   <option value="postulante">Postulante</option>
                   <option value="trabajador">Trabajador</option>
                 </select>
@@ -245,7 +244,6 @@ import { environment } from '../../../environments/environment';
                 <label class="block text-sm font-medium text-gray-700 mb-1">Rol *</label>
                 <select [(ngModel)]="userForm.rol" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                   <option value="admin">Administrador</option>
-                  <option value="evaluador">Evaluador</option>
                   <option value="postulante">Postulante</option>
                   <option value="trabajador">Trabajador</option>
                 </select>
@@ -315,7 +313,6 @@ export class UsuariosComponent implements OnInit {
   roleOptions = [
     { value: 'admin', label: 'Administrador' },
     { value: 'reclutador', label: 'Reclutador' },
-    { value: 'evaluador', label: 'Evaluador' },
     { value: 'auditor', label: 'Auditor' },
   ];
 
