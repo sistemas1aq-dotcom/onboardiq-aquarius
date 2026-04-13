@@ -622,8 +622,12 @@ export class FichaComponent implements OnInit {
         if (discVal === true || discVal === 'true') discVal = (res as any).detalle_discapacidad || 'Física';
         else if (!discVal || discVal === false || discVal === 'false') discVal = 'Ninguna';
 
+        // Construir apellidos combinado si no viene del API
+        const apellidos = res.apellidos || [res.apellido_paterno || '', res.apellido_materno || ''].filter(Boolean).join(' ').trim();
+
         this.ficha = {
           ...res,
+          apellidos: apellidos,
           discapacidad: discVal as any,
           experiencia_laboral: this.parseJson(res.experiencia_laboral),
           idiomas: this.parseJson(res.idiomas),
