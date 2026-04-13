@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from ..models.database import get_db
 from ..models.usuario import Usuario
@@ -38,13 +39,13 @@ def upload_masivo(
 
     # Validar cabeceras
     headers = [cell.value for cell in ws[1]] if ws.max_row and ws.max_row >= 1 else []
-    expected = ["nombre", "apellido_paterno", "apellido_materno", "dni", "email", "puesto", "telefono"]
+    expected = ["nombre", "dni", "email", "area", "cargo", "telefono"]
     headers_lower = [str(h).strip().lower() if h else "" for h in headers]
     for col in expected:
         if col not in headers_lower:
             raise HTTPException(
                 status_code=400,
-                detail=f"Columna requerida '{col}' no encontrada. Cabeceras encontradas: {headers}",
+                detail=f"Columna requerida '{col}' no encontrada. Cabeceras encontradas: {headers}. Descargue la plantilla actualizada.",
             )
 
     col_map = {col: headers_lower.index(col) for col in expected}
@@ -52,63 +53,73 @@ def upload_masivo(
     creados = 0
     fallidos = 0
     errores = []
+    default_password = settings.DEFAULT_PASSWORD
 
     for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         try:
             nombre_val = str(row[col_map["nombre"]] or "").strip()
-            ap_paterno = str(row[col_map["apellido_paterno"]] or "").strip()
-            ap_materno = str(row[col_map["apellido_materno"]] or "").strip()
             dni_val = str(row[col_map["dni"]] or "").strip()
             email_val = str(row[col_map["email"]] or "").strip()
-            puesto_val = str(row[col_map["puesto"]] or "").strip()
+            area_val = str(row[col_map["area"]] or "").strip()
+            cargo_val = str(row[col_map["cargo"]] or "").strip()
             telefono_val = str(row[col_map["telefono"]] or "").strip()
 
-            if not nombre_val or not dni_val or not email_val or not puesto_val:
-                errores.append(f"Fila {row_num}: campos obligatorios vacios")
+            # Validar campos obligatorios
+            if not nombre_val:
+                errores.append(f"Fila {row_num}: nombre vacío")
+                fallidos += 1
+                continue
+            if not dni_val:
+                errores.append(f"Fila {row_num}: DNI vacío")
+                fallidos += 1
+                continue
+            if not email_val:
+                errores.append(f"Fila {row_num}: email vacío")
+                fallidos += 1
+                continue
+            if not cargo_val:
+                errores.append(f"Fila {row_num}: cargo vacío")
                 fallidos += 1
                 continue
 
-            nombre_completo = f"{nombre_val} {ap_paterno} {ap_materno}".strip()
-
             # Validar duplicados
-            existing_dni = db.query(Usuario).filter(Usuario.dni == dni_val).first()
-            if existing_dni:
+            if db.query(Usuario).filter(Usuario.dni == dni_val).first():
                 errores.append(f"Fila {row_num}: DNI {dni_val} ya existe")
                 fallidos += 1
                 continue
-
-            existing_email = db.query(Usuario).filter(Usuario.email == email_val).first()
-            if existing_email:
+            if db.query(Usuario).filter(Usuario.email == email_val).first():
                 errores.append(f"Fila {row_num}: Email {email_val} ya existe")
                 fallidos += 1
                 continue
 
             # Crear usuario
-            default_password = settings.DEFAULT_PASSWORD
             usuario = Usuario(
                 email=email_val,
                 password_hash=hash_password(default_password),
-                nombre=nombre_completo,
+                nombre=nombre_val,
                 dni=dni_val,
                 rol="postulante",
                 telefono=telefono_val if telefono_val else None,
+                area=area_val if area_val else None,
+                cargo=cargo_val if cargo_val else None,
                 activo=True,
             )
             db.add(usuario)
             db.flush()
 
-            # Crear postulante
+            # Crear postulante (cargo = puesto al que postula)
             postulante = Postulante(
                 usuario_id=usuario.id,
-                puesto=puesto_val,
+                puesto=cargo_val,
                 estado="En Evaluacion",
+                area=area_val if area_val else None,
             )
             db.add(postulante)
             db.flush()
 
             # Enviar email de credenciales
-            html = template_credenciales(nombre_completo, email_val, default_password, puesto_val)
-            send_email(email_val, "Bienvenido a Aquarius - Tus credenciales de acceso", html)
+            html = template_credenciales(nombre_val, email_val, default_password, cargo_val)
+            send_email(email_val, f"Bienvenido a OnboardIQ Aquarius - Credenciales de acceso", html)
 
             creados += 1
 
@@ -127,20 +138,85 @@ def upload_masivo(
 def descargar_plantilla(
     current_user: Usuario = Depends(require_role(["admin"])),
 ):
-    """Descarga plantilla Excel para carga masiva."""
+    """Descarga plantilla Excel para carga masiva de postulantes."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Postulantes"
 
-    headers = ["nombre", "apellido_paterno", "apellido_materno", "dni", "email", "puesto", "telefono"]
-    ws.append(headers)
+    headers = ["nombre", "dni", "email", "area", "cargo", "telefono"]
+    header_labels = ["Nombre Completo", "DNI", "Email", "Área", "Cargo (Puesto)", "Teléfono"]
 
-    # Fila de ejemplo
-    ws.append(["Juan", "Perez", "Garcia", "12345678", "juan.perez@email.com", "Analista", "999888777"])
+    # Estilos
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="0A1F3D", end_color="0A1F3D", fill_type="solid")
+    header_align = Alignment(horizontal="center", vertical="center")
+    thin_border = Border(
+        left=Side(style="thin"), right=Side(style="thin"),
+        top=Side(style="thin"), bottom=Side(style="thin"),
+    )
+
+    # Escribir cabeceras con nombres legibles
+    for col_num, (header, label) in enumerate(zip(headers, header_labels), 1):
+        cell = ws.cell(row=1, column=col_num, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_align
+        cell.border = thin_border
+
+    # Segunda fila con labels descriptivos
+    label_font = Font(italic=True, color="64748B", size=10)
+    for col_num, label in enumerate(header_labels, 1):
+        cell = ws.cell(row=2, column=col_num, value=label)
+        cell.font = label_font
+        cell.border = thin_border
+
+    # Filas de ejemplo
+    ejemplos = [
+        ["Juan Carlos Pérez García", "12345678", "jperez@email.com", "Finanzas", "Analista Financiero", "999888777"],
+        ["María Elena López Ruiz", "87654321", "mlopez@email.com", "Recursos Humanos", "Analista de RRHH", "999777666"],
+        ["Roberto García Quispe", "45678912", "rgarcia@email.com", "Tecnología", "Desarrollador Senior", "999666555"],
+    ]
+    for row_num, ejemplo in enumerate(ejemplos, 3):
+        for col_num, valor in enumerate(ejemplo, 1):
+            cell = ws.cell(row=row_num, column=col_num, value=valor)
+            cell.border = thin_border
 
     # Ajustar ancho de columnas
-    for col_num, header in enumerate(headers, 1):
-        ws.column_dimensions[chr(64 + col_num)].width = 20
+    widths = [30, 12, 30, 20, 25, 15]
+    for col_num, width in enumerate(widths, 1):
+        ws.column_dimensions[chr(64 + col_num)].width = width
+
+    # Hoja de instrucciones
+    ws_inst = wb.create_sheet("Instrucciones")
+    instrucciones = [
+        ["INSTRUCCIONES PARA CARGA MASIVA DE POSTULANTES"],
+        [""],
+        ["1. Complete los datos en la hoja 'Postulantes'"],
+        ["2. La primera fila contiene los nombres de las columnas (NO modificar)"],
+        ["3. La segunda fila muestra los nombres descriptivos (puede eliminarla)"],
+        ["4. Las filas 3-5 son ejemplos (elimínelas antes de subir)"],
+        [""],
+        ["CAMPOS OBLIGATORIOS:"],
+        ["  - nombre: Nombre completo del postulante"],
+        ["  - dni: Documento Nacional de Identidad (8 dígitos)"],
+        ["  - email: Correo electrónico (será su usuario de login)"],
+        ["  - cargo: Cargo al que postula (será el puesto asignado)"],
+        [""],
+        ["CAMPOS OPCIONALES:"],
+        ["  - area: Área de la empresa (ej: Finanzas, Tecnología, RRHH)"],
+        ["  - telefono: Número de teléfono de contacto"],
+        [""],
+        ["NOTAS:"],
+        ["  - La contraseña por defecto es: Aquarius2026"],
+        ["  - Se enviará un correo automático con las credenciales"],
+        ["  - Los DNI y emails deben ser únicos (no repetidos)"],
+        ["  - El sistema creará automáticamente el usuario y el postulante"],
+    ]
+    title_font = Font(bold=True, size=14, color="0A1F3D")
+    ws_inst.cell(row=1, column=1, value=instrucciones[0][0]).font = title_font
+    for row_num, row in enumerate(instrucciones[1:], 2):
+        ws_inst.cell(row=row_num, column=1, value=row[0] if row else "")
+    ws_inst.column_dimensions["A"].width = 60
 
     output = io.BytesIO()
     wb.save(output)
@@ -149,5 +225,5 @@ def descargar_plantilla(
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=plantilla_carga_masiva.xlsx"},
+        headers={"Content-Disposition": "attachment; filename=plantilla_carga_masiva_postulantes.xlsx"},
     )
