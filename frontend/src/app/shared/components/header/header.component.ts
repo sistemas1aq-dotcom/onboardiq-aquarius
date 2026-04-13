@@ -29,13 +29,27 @@ import { environment } from '../../../../environments/environment';
 
       <!-- Right: User -->
       <div class="flex items-center gap-2 md:gap-4">
-        <!-- Help Button -->
+        <!-- Help / Back Button -->
         <button
-          class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-colors text-sm font-bold"
+          *ngIf="!helpOpen"
+          class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center transition-all text-sm font-bold"
           (click)="openHelp.emit()"
           title="Manual de Usuario"
         >
-          ?
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </button>
+        <button
+          *ngIf="helpOpen"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white transition-all text-xs font-semibold animate-pulse"
+          (click)="openHelp.emit()"
+          title="Volver a la aplicación"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+          </svg>
+          Volver
         </button>
 
         <!-- Notifications -->
@@ -132,6 +146,7 @@ export class HeaderComponent implements OnInit {
 
   @Input() userName: string = '';
   @Input() userRole: string = '';
+  @Input() helpOpen: boolean = false;
   @Input() breadcrumb: string = 'Dashboard';
   @Output() toggleSidebar = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();

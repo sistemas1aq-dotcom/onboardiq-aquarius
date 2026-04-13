@@ -30,7 +30,8 @@ import { AuthService } from '../../core/services/auth.service';
           [userRole]="userRole"
           (toggleSidebar)="onToggleSidebar()"
           (logout)="onLogout()"
-          (openHelp)="manualOpen = true"
+          [helpOpen]="manualOpen"
+          (openHelp)="manualOpen = !manualOpen"
         ></app-header>
 
         <main class="p-4 md:p-6 flex-1">
