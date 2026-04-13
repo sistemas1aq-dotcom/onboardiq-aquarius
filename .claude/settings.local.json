@@ -178,7 +178,8 @@
       "Bash(curl -s \"https://aquariusrecursos.vercel.app\")",
       "Bash(gh repo:*)",
       "Bash(git remote:*)",
-      "Bash(curl -s https://aquariusrecursos.vercel.app/chunk-*.js)"
+      "Bash(curl -s https://aquariusrecursos.vercel.app/chunk-*.js)",
+      "Bash(curl -s -X POST https://onboardiq-api-production-3f30.up.railway.app/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"sistemas1.aq@gmail.com\",\"password\":\"Aquarius2026\"}')"
     ]
   }
 }

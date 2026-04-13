@@ -59,6 +59,7 @@ class FichaPersonal(Base):
     condiciones_medicas = Column(String(300))
     discapacidad = Column(Boolean, default=False)
     detalle_discapacidad = Column(String(300))
+    estudios_adicionales = Column(String)  # JSON
     fecha_actualizacion = Column(DateTime, server_default=func.now())
 
     postulante = relationship("Postulante", back_populates="ficha")

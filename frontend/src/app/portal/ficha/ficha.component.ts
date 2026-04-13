@@ -507,8 +507,14 @@ export class FichaComponent implements OnInit {
     this.loading = true;
     this.http.get<FichaData>(`${this.apiUrl}/portal/mi-ficha`).subscribe({
       next: (res) => {
+        // Convertir discapacidad boolean a string para el select
+        let discVal: any = (res as any).discapacidad;
+        if (discVal === true || discVal === 'true') discVal = (res as any).detalle_discapacidad || 'Física';
+        else if (!discVal || discVal === false || discVal === 'false') discVal = 'Ninguna';
+
         this.ficha = {
           ...res,
+          discapacidad: discVal as any,
           experiencia_laboral: this.parseJson(res.experiencia_laboral),
           idiomas: this.parseJson(res.idiomas),
           habilidades: this.parseJson(res.habilidades),
@@ -562,8 +568,12 @@ export class FichaComponent implements OnInit {
     this.saving = true;
     this.successMsg = '';
     this.errorMsg = '';
+    // Convertir discapacidad de string a boolean para el backend
+    const discapacidadBool = this.ficha.discapacidad && this.ficha.discapacidad !== 'Ninguna' && this.ficha.discapacidad !== '' && this.ficha.discapacidad !== 'false';
     const payload = {
       ...this.ficha,
+      discapacidad: discapacidadBool,
+      detalle_discapacidad: discapacidadBool ? this.ficha.discapacidad : null,
       experiencia_laboral: JSON.stringify(this.ficha.experiencia_laboral ?? []),
       idiomas: JSON.stringify(this.ficha.idiomas ?? []),
       habilidades: JSON.stringify(this.ficha.habilidades ?? []),

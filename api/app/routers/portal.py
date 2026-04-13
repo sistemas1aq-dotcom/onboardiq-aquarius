@@ -65,7 +65,17 @@ def update_mi_ficha(
         db.add(ficha)
 
     update_data = data.model_dump(exclude_unset=True)
+
+    # Manejar campo 'apellidos' del frontend → split a apellido_paterno/materno
+    if 'apellidos' in update_data:
+        apellidos = str(update_data.pop('apellidos', '')).strip()
+        parts = apellidos.split(' ', 1)
+        update_data['apellido_paterno'] = parts[0] if parts else ''
+        update_data['apellido_materno'] = parts[1] if len(parts) > 1 else ''
+
     for key, value in update_data.items():
+        if not hasattr(ficha, key):
+            continue  # Skip fields not in the model
         if isinstance(value, (list, dict)):
             import json
             setattr(ficha, key, json.dumps(value, ensure_ascii=False))

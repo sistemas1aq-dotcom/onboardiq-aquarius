@@ -40,6 +40,7 @@ class PostulanteResponse(PostulanteBase):
 
 class FichaPersonalBase(BaseModel):
     nombres: Optional[str] = None
+    apellidos: Optional[str] = None  # Frontend field, split into paterno/materno in backend
     apellido_paterno: Optional[str] = None
     apellido_materno: Optional[str] = None
     fecha_nacimiento: Optional[date] = None
@@ -70,6 +71,7 @@ class FichaPersonalBase(BaseModel):
     condiciones_medicas: Optional[str] = None
     discapacidad: Optional[bool] = False
     detalle_discapacidad: Optional[str] = None
+    estudios_adicionales: Optional[Any] = None
 
 
 class FichaPersonalResponse(FichaPersonalBase):
