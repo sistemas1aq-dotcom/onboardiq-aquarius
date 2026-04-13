@@ -474,6 +474,137 @@ interface FichaData {
                 </div>
               </div>
             </div>
+
+            <!-- Tab 7: Datos Bancarios -->
+            <div *ngIf="activeTab === 7">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Datos Bancarios</h3>
+              <div *ngIf="!bancarioLoaded" class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+              <div *ngIf="bancarioLoaded">
+                <div class="mb-6">
+                  <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <span class="text-sm font-medium text-gray-700">Tiene cuenta bancaria?</span>
+                    <div class="relative">
+                      <input type="checkbox" [(ngModel)]="bancarioData.tiene_cuenta" class="sr-only peer"/>
+                      <div class="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors"></div>
+                      <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+                    </div>
+                    <span class="text-sm text-gray-500">{{ bancarioData.tiene_cuenta ? 'Si' : 'No' }}</span>
+                  </label>
+                </div>
+
+                <div *ngIf="bancarioData.tiene_cuenta" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Entidad Bancaria</label>
+                    <select [(ngModel)]="bancarioData.entidad" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                      <option value="">Seleccionar...</option>
+                      <option *ngFor="let b of bancos" [value]="b">{{ b }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipo de Cuenta</label>
+                    <select [(ngModel)]="bancarioData.tipo_cuenta" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                      <option value="">Seleccionar...</option>
+                      <option value="Ahorros">Ahorros</option>
+                      <option value="Corriente">Corriente</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Número de Cuenta</label>
+                    <input type="text" [(ngModel)]="bancarioData.numero_cuenta" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">CCI (Código de Cuenta Interbancario)</label>
+                    <input type="text" [(ngModel)]="bancarioData.cci" maxlength="20" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                  </div>
+                </div>
+
+                <div *ngIf="!bancarioData.tiene_cuenta" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p class="text-sm text-yellow-700">Seleccione una entidad donde desea aperturar su cuenta:</p>
+                  <select [(ngModel)]="bancarioData.entidad" class="mt-2 w-full max-w-sm px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                    <option value="">Seleccionar...</option>
+                    <option *ngFor="let b of bancos" [value]="b">{{ b }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 8: Régimen Pensionario -->
+            <div *ngIf="activeTab === 8">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Régimen Pensionario</h3>
+              <div *ngIf="!pensionarioLoaded" class="flex items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+              <div *ngIf="pensionarioLoaded">
+                <div class="mb-6">
+                  <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <span class="text-sm font-medium text-gray-700">Es su primer trabajo?</span>
+                    <div class="relative">
+                      <input type="checkbox" [(ngModel)]="pensionarioData.primer_trabajo" class="sr-only peer"/>
+                      <div class="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors"></div>
+                      <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+                    </div>
+                    <span class="text-sm text-gray-500">{{ pensionarioData.primer_trabajo ? 'Si' : 'No' }}</span>
+                  </label>
+                </div>
+
+                <!-- Primer trabajo: elegir AFP u ONP -->
+                <div *ngIf="pensionarioData.primer_trabajo" class="space-y-4">
+                  <p class="text-sm text-gray-600 mb-3">Seleccione el régimen pensionario al que desea afiliarse:</p>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipo</label>
+                      <select [(ngModel)]="pensionarioData.tipo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                        <option value="afp">AFP</option>
+                        <option value="onp">ONP</option>
+                      </select>
+                    </div>
+                    <div *ngIf="pensionarioData.tipo === 'afp'">
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Entidad AFP</label>
+                      <select [(ngModel)]="pensionarioData.entidad" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                        <option value="">Seleccionar...</option>
+                        <option *ngFor="let a of afps" [value]="a">{{ a }}</option>
+                      </select>
+                    </div>
+                    <div *ngIf="pensionarioData.tipo === 'onp'">
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Entidad</label>
+                      <input type="text" value="ONP" disabled class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-500"/>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- No es primer trabajo: datos existentes -->
+                <div *ngIf="!pensionarioData.primer_trabajo" class="space-y-4">
+                  <p class="text-sm text-gray-600 mb-3">Ingrese los datos de su régimen pensionario actual:</p>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipo</label>
+                      <select [(ngModel)]="pensionarioData.tipo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                        <option value="afp">AFP</option>
+                        <option value="onp">ONP</option>
+                      </select>
+                    </div>
+                    <div *ngIf="pensionarioData.tipo === 'afp'">
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Entidad AFP</label>
+                      <select [(ngModel)]="pensionarioData.entidad" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
+                        <option value="">Seleccionar...</option>
+                        <option *ngFor="let a of afps" [value]="a">{{ a }}</option>
+                      </select>
+                    </div>
+                    <div *ngIf="pensionarioData.tipo === 'onp'">
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Entidad</label>
+                      <input type="text" value="ONP" disabled class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-500"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">CUSPP</label>
+                      <input type="text" [(ngModel)]="pensionarioData.cuspp" placeholder="Código Único de SPP" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                      <p class="text-xs text-gray-500 mt-1">Código Único del Sistema Privado de Pensiones</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -491,16 +622,25 @@ export class FichaComponent implements OnInit {
   errorMsg = '';
   activeTab = 0;
 
-  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas'];
+  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas', 'Salud', 'Datos Bancarios', 'Régimen Pensionario'];
   estadosCiviles = ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Viudo/a', 'Conviviente'];
   gradosInstruccion = ['Secundaria Completa', 'Técnico', 'Universitario Incompleto', 'Bachiller', 'Titulado', 'Maestría', 'Doctorado'];
   niveles = ['Básico', 'Intermedio', 'Avanzado', 'Nativo'];
   relaciones = ['Jefe Directo', 'Colega', 'Cliente', 'Amigo', 'Familiar', 'Profesor'];
   tiposSangre = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   tiposEstudio = ['Diplomado', 'Maestría', 'Doctorado', 'Certificación', 'Curso', 'Segunda Carrera'];
+  bancos = ['Banco de Crédito del Perú (BCP)', 'BBVA Perú', 'Interbank', 'Scotiabank Perú', 'Banco de la Nación', 'Banco Pichincha', 'Banco Falabella', 'Banco Ripley', 'BanBif', 'MiBanco'];
+  afps = ['AFP Integra', 'AFP Prima', 'AFP Habitat', 'AFP Profuturo'];
+
+  bancarioData: any = { tiene_cuenta: false, entidad: '', tipo_cuenta: '', numero_cuenta: '', cci: '' };
+  pensionarioData: any = { tipo: 'afp', entidad: '', cuspp: '', primer_trabajo: false };
+  bancarioLoaded = false;
+  pensionarioLoaded = false;
 
   ngOnInit(): void {
     this.loadFicha();
+    this.loadBancario();
+    this.loadPensionario();
   }
 
   loadFicha(): void {
@@ -563,6 +703,72 @@ export class FichaComponent implements OnInit {
     }
   }
 
+  loadBancario(): void {
+    this.http.get<any>(`${this.apiUrl}/portal/datos-bancarios`).subscribe({
+      next: (res) => {
+        this.bancarioData = { tiene_cuenta: res.tiene_cuenta ?? false, entidad: res.entidad ?? '', tipo_cuenta: res.tipo_cuenta ?? '', numero_cuenta: res.numero_cuenta ?? '', cci: res.cci ?? '' };
+        this.bancarioLoaded = true;
+      },
+      error: () => {
+        this.bancarioData = { tiene_cuenta: false, entidad: '', tipo_cuenta: '', numero_cuenta: '', cci: '' };
+        this.bancarioLoaded = true;
+      },
+    });
+  }
+
+  loadPensionario(): void {
+    this.http.get<any>(`${this.apiUrl}/portal/regimen-pensionario`).subscribe({
+      next: (res) => {
+        this.pensionarioData = { tipo: res.tipo ?? 'afp', entidad: res.entidad ?? '', cuspp: res.cuspp ?? '', primer_trabajo: res.primer_trabajo ?? false };
+        this.pensionarioLoaded = true;
+      },
+      error: () => {
+        this.pensionarioData = { tipo: 'afp', entidad: '', cuspp: '', primer_trabajo: false };
+        this.pensionarioLoaded = true;
+      },
+    });
+  }
+
+  private saveBancario(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const method = this.bancarioLoaded ? 'put' : 'post';
+      this.http.request(method, `${this.apiUrl}/portal/datos-bancarios`, { body: this.bancarioData }).subscribe({
+        next: () => resolve(),
+        error: (err) => {
+          if (err.status === 405 || err.status === 404) {
+            const fallback = method === 'put' ? 'post' : 'put';
+            this.http.request(fallback, `${this.apiUrl}/portal/datos-bancarios`, { body: this.bancarioData }).subscribe({
+              next: () => resolve(),
+              error: () => reject(),
+            });
+          } else {
+            reject();
+          }
+        },
+      });
+    });
+  }
+
+  private savePensionario(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const method = this.pensionarioLoaded ? 'put' : 'post';
+      this.http.request(method, `${this.apiUrl}/portal/regimen-pensionario`, { body: this.pensionarioData }).subscribe({
+        next: () => resolve(),
+        error: (err) => {
+          if (err.status === 405 || err.status === 404) {
+            const fallback = method === 'put' ? 'post' : 'put';
+            this.http.request(fallback, `${this.apiUrl}/portal/regimen-pensionario`, { body: this.pensionarioData }).subscribe({
+              next: () => resolve(),
+              error: () => reject(),
+            });
+          } else {
+            reject();
+          }
+        },
+      });
+    });
+  }
+
   guardar(): void {
     if (!this.ficha) return;
     this.saving = true;
@@ -580,18 +786,26 @@ export class FichaComponent implements OnInit {
       referencias: JSON.stringify(this.ficha.referencias ?? []),
       estudios_adicionales: JSON.stringify(this.ficha.estudios_adicionales ?? []),
     };
-    this.http.put(`${this.apiUrl}/portal/mi-ficha`, payload).subscribe({
-      next: () => {
+
+    // Save ficha + bancario + pensionario all at once
+    const fichaPromise = new Promise<void>((resolve, reject) => {
+      this.http.put(`${this.apiUrl}/portal/mi-ficha`, payload).subscribe({
+        next: () => resolve(),
+        error: () => reject(),
+      });
+    });
+
+    Promise.all([fichaPromise, this.saveBancario(), this.savePensionario()])
+      .then(() => {
         this.saving = false;
         this.successMsg = 'Ficha guardada exitosamente.';
         setTimeout(() => this.successMsg = '', 4000);
-      },
-      error: () => {
+      })
+      .catch(() => {
         this.saving = false;
         this.errorMsg = 'Error al guardar la ficha. Intente nuevamente.';
         setTimeout(() => this.errorMsg = '', 4000);
-      },
-    });
+      });
   }
 
   addExperiencia(): void {

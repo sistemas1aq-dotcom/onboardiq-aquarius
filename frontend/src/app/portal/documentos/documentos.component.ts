@@ -24,6 +24,13 @@ interface Documento {
   archivo_url: string | null;
 }
 
+interface Firma {
+  tipo_documento: string;
+  fecha_firma: string;
+  ip_address: string;
+  hash: string;
+}
+
 @Component({
   selector: 'app-documentos',
   standalone: true,
@@ -137,6 +144,60 @@ interface Documento {
         <div *ngIf="documentos.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
           <p>No hay documentos configurados para su proceso</p>
         </div>
+
+        <!-- Documentos Firmados Section -->
+        <div class="mt-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-1">Documentos Firmados</h2>
+          <p class="text-sm text-gray-500 mb-4">Documentos con firma digital verificada</p>
+
+          <div *ngIf="loadingFirmas" class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+
+          <div *ngIf="!loadingFirmas && firmas.length > 0" class="space-y-3">
+            <div *ngFor="let firma of firmas" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-1">
+                  <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-semibold text-gray-900">{{ firma.tipo_documento }}</h3>
+                  <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-500">
+                    <div class="flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                      <span>{{ firma.fecha_firma }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/>
+                      </svg>
+                      <span>IP: {{ firma.ip_address }}</span>
+                    </div>
+                    <div class="flex items-center gap-1 truncate">
+                      <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                      </svg>
+                      <span class="truncate" [title]="firma.hash">Hash: {{ firma.hash }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!loadingFirmas && firmas.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
+            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-sm">No tiene documentos firmados</p>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -146,7 +207,9 @@ export class DocumentosComponent implements OnInit {
   private apiUrl = environment.apiUrl;
 
   documentos: Documento[] = [];
+  firmas: Firma[] = [];
   loading = true;
+  loadingFirmas = true;
   error = '';
   successMsg = '';
   uploadingId: number | null = null;
@@ -165,6 +228,7 @@ export class DocumentosComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDocumentos();
+    this.loadFirmas();
   }
 
   loadDocumentos(): void {
@@ -192,6 +256,20 @@ export class DocumentosComponent implements OnInit {
           this.error = 'Error al cargar los documentos.';
           this.loading = false;
         }
+      },
+    });
+  }
+
+  loadFirmas(): void {
+    this.loadingFirmas = true;
+    this.http.get<Firma[]>(`${this.apiUrl}/portal/mis-firmas`).subscribe({
+      next: (res) => {
+        this.firmas = res || [];
+        this.loadingFirmas = false;
+      },
+      error: () => {
+        this.firmas = [];
+        this.loadingFirmas = false;
       },
     });
   }

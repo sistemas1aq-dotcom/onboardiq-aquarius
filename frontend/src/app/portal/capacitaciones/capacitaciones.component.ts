@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { ProgressBarComponent } from '../../shared/components/progress-bar/progress-bar.component';
@@ -15,10 +16,20 @@ interface Capacitacion {
 @Component({
   selector: 'app-capacitaciones',
   standalone: true,
-  imports: [CommonModule, ProgressBarComponent],
+  imports: [CommonModule, FormsModule, ProgressBarComponent],
   template: `
     <div>
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">Capacitaciones</h1>
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-2xl font-bold text-gray-900">Capacitaciones</h1>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <span class="text-sm text-gray-600">Mostrar completadas</span>
+          <div class="relative">
+            <input type="checkbox" [(ngModel)]="showCompleted" class="sr-only peer"/>
+            <div class="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full transition-colors"></div>
+            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+          </div>
+        </label>
+      </div>
       <p class="text-sm text-gray-500 mb-6">Complete los cursos de capacitacion asignados</p>
 
       <!-- Loading -->
@@ -49,8 +60,8 @@ interface Capacitacion {
         </div>
 
         <!-- Courses list -->
-        <div *ngIf="capacitaciones.length > 0" class="space-y-4">
-          <div *ngFor="let cap of capacitaciones" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div *ngIf="filteredCapacitaciones.length > 0" class="space-y-4">
+          <div *ngFor="let cap of filteredCapacitaciones" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex items-start justify-between gap-4">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
@@ -98,6 +109,10 @@ interface Capacitacion {
           </div>
         </div>
 
+        <div *ngIf="filteredCapacitaciones.length === 0 && capacitaciones.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
+          <p>No tiene capacitaciones pendientes. Active "Mostrar completadas" para ver todas.</p>
+        </div>
+
         <div *ngIf="capacitaciones.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
           <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
@@ -117,6 +132,12 @@ export class CapacitacionesComponent implements OnInit {
   error = '';
   successMsg = '';
   markingId: number | null = null;
+  showCompleted = false;
+
+  get filteredCapacitaciones(): Capacitacion[] {
+    if (this.showCompleted) return this.capacitaciones;
+    return this.capacitaciones.filter(c => c.cumplimiento < 100);
+  }
 
   get overallProgress(): number {
     if (this.capacitaciones.length === 0) return 0;
