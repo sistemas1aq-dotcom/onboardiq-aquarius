@@ -39,7 +39,7 @@ def upload_masivo(
 
     # Validar cabeceras
     headers = [cell.value for cell in ws[1]] if ws.max_row and ws.max_row >= 1 else []
-    expected = ["nombre", "dni", "email", "area", "cargo", "telefono"]
+    expected = ["nombre", "apellido_paterno", "apellido_materno", "dni", "email", "area", "cargo", "telefono"]
     headers_lower = [str(h).strip().lower() if h else "" for h in headers]
     for col in expected:
         if col not in headers_lower:
@@ -58,11 +58,15 @@ def upload_masivo(
     for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         try:
             nombre_val = str(row[col_map["nombre"]] or "").strip()
+            ap_paterno_val = str(row[col_map["apellido_paterno"]] or "").strip()
+            ap_materno_val = str(row[col_map["apellido_materno"]] or "").strip()
             dni_val = str(row[col_map["dni"]] or "").strip()
             email_val = str(row[col_map["email"]] or "").strip()
             area_val = str(row[col_map["area"]] or "").strip()
             cargo_val = str(row[col_map["cargo"]] or "").strip()
             telefono_val = str(row[col_map["telefono"]] or "").strip()
+            # Build nombre_completo from parts
+            nombre_completo = " ".join(filter(None, [nombre_val, ap_paterno_val, ap_materno_val])).strip()
 
             # Validar campos obligatorios
             if not nombre_val:
@@ -96,7 +100,9 @@ def upload_masivo(
             usuario = Usuario(
                 email=email_val,
                 password_hash=hash_password(default_password),
-                nombre=nombre_val,
+                nombre=nombre_completo,
+                apellido_paterno=ap_paterno_val if ap_paterno_val else None,
+                apellido_materno=ap_materno_val if ap_materno_val else None,
                 dni=dni_val,
                 rol="postulante",
                 telefono=telefono_val if telefono_val else None,

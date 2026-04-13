@@ -157,9 +157,19 @@ import { environment } from '../../../environments/environment';
             <button (click)="createModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
           </div>
           <div class="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
-              <input type="text" [(ngModel)]="userForm.nombre" placeholder="Nombre completo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nombres *</label>
+                <input type="text" [(ngModel)]="userForm.nombres" placeholder="Nombres" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido Paterno *</label>
+                <input type="text" [(ngModel)]="userForm.apellido_paterno" placeholder="Apellido paterno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido Materno</label>
+                <input type="text" [(ngModel)]="userForm.apellido_materno" placeholder="Apellido materno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
@@ -227,9 +237,19 @@ import { environment } from '../../../environments/environment';
               <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
             </div>
             <div *ngIf="!modalLoading">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
-              <input type="text" [(ngModel)]="userForm.nombre" placeholder="Nombre completo" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nombres *</label>
+                <input type="text" [(ngModel)]="userForm.nombres" placeholder="Nombres" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido Paterno *</label>
+                <input type="text" [(ngModel)]="userForm.apellido_paterno" placeholder="Apellido paterno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Apellido Materno</label>
+                <input type="text" [(ngModel)]="userForm.apellido_materno" placeholder="Apellido materno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
@@ -305,7 +325,7 @@ export class UsuariosComponent implements OnInit {
   editModalOpen = false;
   editingUser: any = null;
 
-  userForm: any = { nombre: '', email: '', dni: '', rol: '', password: '', telefono: '', area: '', cargo: '' };
+  userForm: any = { nombres: '', apellido_paterno: '', apellido_materno: '', email: '', dni: '', rol: '', password: '', telefono: '', area: '', cargo: '' };
 
   areas: any[] = [];
   cargosForArea: any[] = [];
@@ -378,15 +398,18 @@ export class UsuariosComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.userForm = { nombre: '', email: '', dni: '', rol: '', password: '', telefono: '', area: '', cargo: '' };
+    this.userForm = { nombres: '', apellido_paterno: '', apellido_materno: '', email: '', dni: '', rol: '', password: '', telefono: '', area: '', cargo: '' };
     this.cargosForArea = [];
     this.createModalOpen = true;
   }
 
   openEditModal(user: any): void {
     this.editingUser = user;
+    const parts = (user.nombre || '').split(' ');
     this.userForm = {
-      nombre: user.nombre,
+      nombres: user.apellido_paterno ? parts.slice(0, Math.max(1, parts.length - 2)).join(' ') : parts[0] || '',
+      apellido_paterno: user.apellido_paterno || parts[1] || '',
+      apellido_materno: user.apellido_materno || parts[2] || '',
       email: user.email,
       dni: user.dni,
       rol: user.rol,
@@ -410,15 +433,18 @@ export class UsuariosComponent implements OnInit {
   }
 
   createUser(): void {
-    if (!this.userForm.nombre || !this.userForm.email || !this.userForm.password || !this.userForm.rol) {
+    if (!this.userForm.nombres || !this.userForm.apellido_paterno || !this.userForm.email || !this.userForm.password || !this.userForm.rol) {
       this.showError('Complete todos los campos obligatorios');
       return;
     }
     this.saving = true;
+    const fullName = [this.userForm.nombres, this.userForm.apellido_paterno, this.userForm.apellido_materno].filter(Boolean).join(' ').trim();
     const payload = {
       email: this.userForm.email,
       password: this.userForm.password,
-      nombre: this.userForm.nombre,
+      nombre: fullName,
+      apellido_paterno: this.userForm.apellido_paterno,
+      apellido_materno: this.userForm.apellido_materno || null,
       dni: this.userForm.dni,
       rol: this.userForm.rol,
       telefono: this.userForm.telefono,
@@ -440,10 +466,13 @@ export class UsuariosComponent implements OnInit {
   }
 
   updateUser(): void {
-    if (!this.editingUser || !this.userForm.nombre || !this.userForm.email) return;
+    if (!this.editingUser || !this.userForm.nombres || !this.userForm.apellido_paterno || !this.userForm.email) return;
     this.saving = true;
+    const fullName = [this.userForm.nombres, this.userForm.apellido_paterno, this.userForm.apellido_materno].filter(Boolean).join(' ').trim();
     const body: any = {
-      nombre: this.userForm.nombre,
+      nombre: fullName,
+      apellido_paterno: this.userForm.apellido_paterno,
+      apellido_materno: this.userForm.apellido_materno || null,
       email: this.userForm.email,
       dni: this.userForm.dni,
       rol: this.userForm.rol,

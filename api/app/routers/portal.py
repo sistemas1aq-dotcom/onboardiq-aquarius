@@ -66,12 +66,8 @@ def update_mi_ficha(
 
     update_data = data.model_dump(exclude_unset=True)
 
-    # Manejar campo 'apellidos' del frontend → split a apellido_paterno/materno
-    if 'apellidos' in update_data:
-        apellidos = str(update_data.pop('apellidos', '')).strip()
-        parts = apellidos.split(' ', 1)
-        update_data['apellido_paterno'] = parts[0] if parts else ''
-        update_data['apellido_materno'] = parts[1] if len(parts) > 1 else ''
+    # Remove legacy 'apellidos' field if sent - we now use separate fields
+    update_data.pop('apellidos', None)
 
     for key, value in update_data.items():
         if not hasattr(ficha, key):

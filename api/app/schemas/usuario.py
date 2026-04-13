@@ -18,6 +18,8 @@ class TokenResponse(BaseModel):
 class UsuarioBase(BaseModel):
     email: str
     nombre: str
+    apellido_paterno: Optional[str] = None
+    apellido_materno: Optional[str] = None
     dni: Optional[str] = None
     rol: str
     telefono: Optional[str] = None
@@ -32,6 +34,8 @@ class UsuarioCreate(UsuarioBase):
 class UsuarioUpdate(BaseModel):
     email: Optional[str] = None
     nombre: Optional[str] = None
+    apellido_paterno: Optional[str] = None
+    apellido_materno: Optional[str] = None
     dni: Optional[str] = None
     rol: Optional[str] = None
     telefono: Optional[str] = None

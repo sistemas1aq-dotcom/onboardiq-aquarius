@@ -68,6 +68,8 @@ def create_usuario(
         email=data.email,
         password_hash=hash_password(data.password),
         nombre=data.nombre,
+        apellido_paterno=data.apellido_paterno,
+        apellido_materno=data.apellido_materno,
         dni=data.dni,
         rol=data.rol,
         telefono=data.telefono,

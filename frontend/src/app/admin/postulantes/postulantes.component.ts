@@ -335,11 +335,21 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
             <div *ngIf="!createLoading">
               <p class="text-xs text-gray-400 mb-4">Se creará automáticamente el usuario con rol Postulante. La contraseña por defecto es: <strong>Aquarius2026</strong></p>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
-                  <input type="text" [(ngModel)]="newPostulante.nombre" placeholder="Nombre y apellidos" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Nombres *</label>
+                  <input type="text" [(ngModel)]="newPostulante.nombres" placeholder="Nombres" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Apellido Paterno *</label>
+                  <input type="text" [(ngModel)]="newPostulante.apellido_paterno" placeholder="Apellido paterno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Apellido Materno</label>
+                  <input type="text" [(ngModel)]="newPostulante.apellido_materno" placeholder="Apellido materno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input type="email" [(ngModel)]="newPostulante.email" placeholder="correo@email.com" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
@@ -510,7 +520,7 @@ export class PostulantesComponent implements OnInit {
   selectedPostulante: any = null;
 
   newPostulante: any = {
-    nombre: '', email: '', dni: '', telefono: '', area: '', cargo: '',
+    nombres: '', apellido_paterno: '', apellido_materno: '', email: '', dni: '', telefono: '', area: '', cargo: '',
   };
   createAreas: any[] = [];
   createCargos: any[] = [];
@@ -625,7 +635,7 @@ export class PostulantesComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.newPostulante = { nombre: '', email: '', dni: '', telefono: '', area: '', cargo: '' };
+    this.newPostulante = { nombres: '', apellido_paterno: '', apellido_materno: '', email: '', dni: '', telefono: '', area: '', cargo: '' };
     this.createModalOpen = true;
     this.createLoading = true;
     this.http.get<any[]>(`${this.apiUrl}/maestros/areas`).subscribe({
@@ -698,19 +708,22 @@ export class PostulantesComponent implements OnInit {
   }
 
   createPostulante(): void {
-    if (!this.newPostulante.nombre || !this.newPostulante.email || !this.newPostulante.dni || !this.newPostulante.cargo) {
+    if (!this.newPostulante.nombres || !this.newPostulante.apellido_paterno || !this.newPostulante.email || !this.newPostulante.dni || !this.newPostulante.cargo) {
       this.showError('Complete todos los campos obligatorios');
       return;
     }
     this.saving = true;
+    const fullName = [this.newPostulante.nombres, this.newPostulante.apellido_paterno, this.newPostulante.apellido_materno].filter(Boolean).join(' ').trim();
     const payload = {
-      nombre: this.newPostulante.nombre,
+      nombre: fullName,
+      apellido_paterno: this.newPostulante.apellido_paterno,
+      apellido_materno: this.newPostulante.apellido_materno || null,
       email: this.newPostulante.email,
       dni: this.newPostulante.dni,
       telefono: this.newPostulante.telefono || null,
       area: this.newPostulante.area || null,
       cargo: this.newPostulante.cargo,
-      puesto: this.newPostulante.cargo,  // El cargo es el puesto al que postula
+      puesto: this.newPostulante.cargo,
     };
     this.http.post<any>(`${this.apiUrl}/postulantes/completo`, payload).subscribe({
       next: (res) => {

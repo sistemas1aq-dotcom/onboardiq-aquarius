@@ -10,6 +10,8 @@ class Usuario(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     nombre = Column(String(200), nullable=False)
+    apellido_paterno = Column(String(100))
+    apellido_materno = Column(String(100))
     dni = Column(String(20), unique=True, index=True)
     rol = Column(String(20), nullable=False)  # admin, evaluador, postulante, trabajador
     telefono = Column(String(20))

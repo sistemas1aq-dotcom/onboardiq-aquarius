@@ -40,7 +40,6 @@ interface EstudioAdicional {
 interface FichaData {
   // Datos Personales
   nombres: string;
-  apellidos: string;
   apellido_paterno: string;
   apellido_materno: string;
   dni: string;
@@ -141,8 +140,12 @@ interface FichaData {
                   <input type="text" [(ngModel)]="ficha.nombres" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Apellidos <span class="text-red-500">*</span></label>
-                  <input type="text" [(ngModel)]="ficha.apellidos" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Apellido Paterno <span class="text-red-500">*</span></label>
+                  <input type="text" [(ngModel)]="ficha.apellido_paterno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Apellido Materno</label>
+                  <input type="text" [(ngModel)]="ficha.apellido_materno" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1.5">DNI <span class="text-red-500">*</span></label>
@@ -622,12 +625,8 @@ export class FichaComponent implements OnInit {
         if (discVal === true || discVal === 'true') discVal = (res as any).detalle_discapacidad || 'Física';
         else if (!discVal || discVal === false || discVal === 'false') discVal = 'Ninguna';
 
-        // Construir apellidos combinado si no viene del API
-        const apellidos = res.apellidos || [res.apellido_paterno || '', res.apellido_materno || ''].filter(Boolean).join(' ').trim();
-
         this.ficha = {
           ...res,
-          apellidos: apellidos,
           discapacidad: discVal as any,
           experiencia_laboral: this.parseJson(res.experiencia_laboral),
           idiomas: this.parseJson(res.idiomas),
@@ -647,7 +646,8 @@ export class FichaComponent implements OnInit {
             if (user) {
               const parts = (user.nombre || '').split(' ');
               this.ficha!.nombres = parts[0] || '';
-              this.ficha!.apellidos = parts.slice(1).join(' ') || '';
+              this.ficha!.apellido_paterno = user.apellido_paterno || parts[1] || '';
+              this.ficha!.apellido_materno = user.apellido_materno || parts[2] || '';
               this.ficha!.dni = user.dni || '';
               this.ficha!.telefono = user.telefono || '';
             }
@@ -770,7 +770,6 @@ export class FichaComponent implements OnInit {
     const discBool = f.discapacidad && f.discapacidad !== 'Ninguna' && f.discapacidad !== '' && f.discapacidad !== 'false';
     const payload: any = {
       nombres: f.nombres || null,
-      apellidos: f.apellidos || null,
       apellido_paterno: f.apellido_paterno || null,
       apellido_materno: f.apellido_materno || null,
       dni: f.dni || null,
@@ -867,7 +866,7 @@ export class FichaComponent implements OnInit {
 
   private emptyFicha(): FichaData {
     return {
-      nombres: '', apellidos: '', apellido_paterno: '', apellido_materno: '',
+      nombres: '', apellido_paterno: '', apellido_materno: '',
       dni: '', fecha_nacimiento: '', lugar_nacimiento: '',
       estado_civil: '', genero: '', direccion: '', distrito: '', provincia: '', departamento: '',
       telefono: '', telefono_emergencia: '', contacto_emergencia: '',

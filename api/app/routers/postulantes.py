@@ -131,6 +131,8 @@ def create_postulante(
 
 class PostulanteCompletoCreate(BaseModel):
     nombre: str
+    apellido_paterno: Optional[str] = None
+    apellido_materno: Optional[str] = None
     email: str
     dni: str
     telefono: Optional[str] = None
@@ -155,12 +157,15 @@ def create_postulante_completo(
     if data.dni and db.query(Usuario).filter(Usuario.dni == data.dni).first():
         raise HTTPException(status_code=400, detail="El DNI ya está registrado")
 
-    # Crear usuario
+    # Crear usuario - build nombre_completo from parts
     pwd = data.password or "Aquarius2026"
+    nombre_completo = " ".join(filter(None, [data.nombre, data.apellido_paterno, data.apellido_materno])).strip()
     usuario = Usuario(
         email=data.email,
         password_hash=hash_password(pwd),
-        nombre=data.nombre,
+        nombre=nombre_completo,
+        apellido_paterno=data.apellido_paterno,
+        apellido_materno=data.apellido_materno,
         dni=data.dni,
         rol="postulante",
         telefono=data.telefono,
