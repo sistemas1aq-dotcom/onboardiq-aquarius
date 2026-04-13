@@ -442,41 +442,8 @@ interface FichaData {
               </div>
             </div>
 
-            <!-- Tab 6: Salud -->
+            <!-- Tab 6: Datos Bancarios -->
             <div *ngIf="activeTab === 6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Información de Salud</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipo de Sangre</label>
-                  <select [(ngModel)]="ficha.tipo_sangre" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
-                    <option value="">Seleccionar...</option>
-                    <option *ngFor="let ts of tiposSangre" [value]="ts">{{ ts }}</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Discapacidad</label>
-                  <select [(ngModel)]="ficha.discapacidad" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white">
-                    <option value="">Seleccionar...</option>
-                    <option value="Ninguna">Ninguna</option>
-                    <option value="Física">Física</option>
-                    <option value="Sensorial">Sensorial</option>
-                    <option value="Intelectual">Intelectual</option>
-                    <option value="Mental">Mental</option>
-                  </select>
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Alergias</label>
-                  <textarea [(ngModel)]="ficha.alergias" rows="2" placeholder="Describa sus alergias si las tiene" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-y"></textarea>
-                </div>
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Condiciones Médicas</label>
-                  <textarea [(ngModel)]="ficha.condiciones_medicas" rows="2" placeholder="Describa condiciones médicas relevantes" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-y"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab 7: Datos Bancarios -->
-            <div *ngIf="activeTab === 7">
               <h3 class="text-lg font-semibold text-gray-900 mb-4">Datos Bancarios</h3>
               <div *ngIf="!bancarioLoaded" class="flex items-center justify-center py-8">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -531,7 +498,7 @@ interface FichaData {
             </div>
 
             <!-- Tab 8: Régimen Pensionario -->
-            <div *ngIf="activeTab === 8">
+            <div *ngIf="activeTab === 7">
               <h3 class="text-lg font-semibold text-gray-900 mb-4">Régimen Pensionario</h3>
               <div *ngIf="!pensionarioLoaded" class="flex items-center justify-center py-8">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -622,7 +589,7 @@ export class FichaComponent implements OnInit {
   errorMsg = '';
   activeTab = 0;
 
-  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas', 'Salud', 'Datos Bancarios', 'Régimen Pensionario'];
+  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas', 'Datos Bancarios', 'Régimen Pensionario'];
   estadosCiviles = ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Viudo/a', 'Conviviente'];
   gradosInstruccion = ['Secundaria Completa', 'Técnico', 'Universitario Incompleto', 'Bachiller', 'Titulado', 'Maestría', 'Doctorado'];
   niveles = ['Básico', 'Intermedio', 'Avanzado', 'Nativo'];
@@ -795,11 +762,15 @@ export class FichaComponent implements OnInit {
       });
     });
 
-    Promise.all([fichaPromise, this.saveBancario(), this.savePensionario()])
+    // Guardar ficha primero, bancario y pensionario son opcionales
+    fichaPromise
       .then(() => {
-        this.saving = false;
-        this.successMsg = 'Ficha guardada exitosamente.';
-        setTimeout(() => this.successMsg = '', 4000);
+        // Intentar guardar bancario y pensionario sin que falle todo
+        Promise.allSettled([this.saveBancario(), this.savePensionario()]).then(() => {
+          this.saving = false;
+          this.successMsg = 'Ficha guardada exitosamente.';
+          setTimeout(() => this.successMsg = '', 4000);
+        });
       })
       .catch(() => {
         this.saving = false;
