@@ -93,5 +93,5 @@ import { RouterLink } from '@angular/router';
   `,
 })
 export class LandingComponent {
-  profiles = ['Administrador', 'Evaluador', 'Postulante', 'Trabajador'];
+  profiles = ['Trabajador', 'Postulante'];
 }
