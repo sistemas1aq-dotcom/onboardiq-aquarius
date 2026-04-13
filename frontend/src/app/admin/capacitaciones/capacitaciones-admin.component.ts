@@ -123,7 +123,7 @@ import { environment } from '../../../environments/environment';
         <div class="absolute inset-0 bg-black/50" (click)="asignarModalOpen = false"></div>
         <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900">Asignar Trabajadores</h3>
+            <h3 class="text-lg font-semibold text-gray-900">Asignar Personal</h3>
             <button (click)="asignarModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
           </div>
           <div class="px-6 py-4">
@@ -364,9 +364,12 @@ export class CapacitacionesAdminComponent implements OnInit {
 
   private loadTrabajadores(cap: any): void {
     this.loadingTrabajadores = true;
-    this.http.get<any[]>(`${this.apiUrl}/postulantes/?estado=Trabajador`).subscribe({
+    // Cargar todos los usuarios activos excepto postulantes
+    this.http.get<any[]>(`${this.apiUrl}/usuarios/`).subscribe({
       next: (data) => {
-        this.trabajadores = data ?? [];
+        this.trabajadores = (data ?? [])
+          .filter((u: any) => u.activo && u.rol !== 'postulante')
+          .map((u: any) => ({ id: u.id, nombre: u.nombre, puesto: u.cargo || u.area || u.rol, dni: u.dni }));
         // Pre-select already assigned
         if (cap.asignados && Array.isArray(cap.asignados)) {
           cap.asignados.forEach((id: number) => this.selectedTrabajadorIds.add(id));
