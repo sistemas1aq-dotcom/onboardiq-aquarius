@@ -633,10 +633,27 @@ export class FichaComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
+        // Primera vez: cargar datos básicos del usuario
         this.ficha = this.emptyFicha();
-        this.prepopulateDefaults();
-        this.padReferencias();
-        this.loading = false;
+        this.http.get<any>(`${this.apiUrl}/auth/me`).subscribe({
+          next: (user) => {
+            if (user) {
+              const parts = (user.nombre || '').split(' ');
+              this.ficha!.nombres = parts[0] || '';
+              this.ficha!.apellidos = parts.slice(1).join(' ') || '';
+              this.ficha!.dni = user.dni || '';
+              this.ficha!.telefono = user.telefono || '';
+            }
+            this.prepopulateDefaults();
+            this.padReferencias();
+            this.loading = false;
+          },
+          error: () => {
+            this.prepopulateDefaults();
+            this.padReferencias();
+            this.loading = false;
+          },
+        });
       },
     });
   }
