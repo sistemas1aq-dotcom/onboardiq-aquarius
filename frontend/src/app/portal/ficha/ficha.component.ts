@@ -41,6 +41,8 @@ interface FichaData {
   // Datos Personales
   nombres: string;
   apellidos: string;
+  apellido_paterno: string;
+  apellido_materno: string;
   dni: string;
   fecha_nacimiento: string;
   lugar_nacimiento: string;
@@ -52,6 +54,7 @@ interface FichaData {
   departamento: string;
   telefono: string;
   telefono_emergencia: string;
+  contacto_emergencia: string;
   // Formacion
   grado_instruccion: string;
   carrera: string;
@@ -758,24 +761,51 @@ export class FichaComponent implements OnInit {
     this.saving = true;
     this.successMsg = '';
     this.errorMsg = '';
-    // Convertir discapacidad de string a boolean para el backend
-    const discapacidadBool = this.ficha.discapacidad && this.ficha.discapacidad !== 'Ninguna' && this.ficha.discapacidad !== '' && this.ficha.discapacidad !== 'false';
-    const payload = {
-      ...this.ficha,
-      discapacidad: discapacidadBool,
-      detalle_discapacidad: discapacidadBool ? this.ficha.discapacidad : null,
-      experiencia_laboral: JSON.stringify(this.ficha.experiencia_laboral ?? []),
-      idiomas: JSON.stringify(this.ficha.idiomas ?? []),
-      habilidades: JSON.stringify(this.ficha.habilidades ?? []),
-      referencias: JSON.stringify(this.ficha.referencias ?? []),
-      estudios_adicionales: JSON.stringify(this.ficha.estudios_adicionales ?? []),
+    // Construir payload solo con campos conocidos
+    const f = this.ficha;
+    const discBool = f.discapacidad && f.discapacidad !== 'Ninguna' && f.discapacidad !== '' && f.discapacidad !== 'false';
+    const payload: any = {
+      nombres: f.nombres || null,
+      apellidos: f.apellidos || null,
+      apellido_paterno: f.apellido_paterno || null,
+      apellido_materno: f.apellido_materno || null,
+      dni: f.dni || null,
+      fecha_nacimiento: f.fecha_nacimiento || null,
+      lugar_nacimiento: f.lugar_nacimiento || null,
+      estado_civil: f.estado_civil || null,
+      genero: f.genero || null,
+      direccion: f.direccion || null,
+      distrito: f.distrito || null,
+      provincia: f.provincia || null,
+      departamento: f.departamento || null,
+      telefono: f.telefono || null,
+      telefono_emergencia: f.telefono_emergencia || null,
+      contacto_emergencia: f.contacto_emergencia || null,
+      grado_instruccion: f.grado_instruccion || null,
+      carrera: f.carrera || null,
+      universidad: f.universidad || null,
+      anio_egreso: f.anio_egreso || null,
+      colegiatura: f.colegiatura || null,
+      pretension_salarial: f.pretension_salarial || null,
+      disponibilidad: f.disponibilidad || null,
+      modalidad_preferida: f.modalidad_preferida || null,
+      tipo_sangre: f.tipo_sangre || null,
+      alergias: f.alergias || null,
+      condiciones_medicas: f.condiciones_medicas || null,
+      discapacidad: discBool ? true : false,
+      detalle_discapacidad: discBool ? f.discapacidad : null,
+      experiencia_laboral: JSON.stringify(f.experiencia_laboral ?? []),
+      idiomas: JSON.stringify(f.idiomas ?? []),
+      habilidades: JSON.stringify(f.habilidades ?? []),
+      referencias: JSON.stringify(f.referencias ?? []),
+      estudios_adicionales: JSON.stringify(f.estudios_adicionales ?? []),
     };
 
     // Save ficha + bancario + pensionario all at once
     const fichaPromise = new Promise<void>((resolve, reject) => {
       this.http.put(`${this.apiUrl}/portal/mi-ficha`, payload).subscribe({
         next: () => resolve(),
-        error: () => reject(),
+        error: (err) => reject(err),
       });
     });
 
@@ -789,10 +819,10 @@ export class FichaComponent implements OnInit {
           setTimeout(() => this.successMsg = '', 4000);
         });
       })
-      .catch(() => {
+      .catch((err) => {
         this.saving = false;
-        this.errorMsg = 'Error al guardar la ficha. Intente nuevamente.';
-        setTimeout(() => this.errorMsg = '', 4000);
+        this.errorMsg = 'Error al guardar la ficha: ' + (err?.error?.detail || err?.message || 'Intente nuevamente');
+        setTimeout(() => this.errorMsg = '', 6000);
       });
   }
 
@@ -833,9 +863,10 @@ export class FichaComponent implements OnInit {
 
   private emptyFicha(): FichaData {
     return {
-      nombres: '', apellidos: '', dni: '', fecha_nacimiento: '', lugar_nacimiento: '',
+      nombres: '', apellidos: '', apellido_paterno: '', apellido_materno: '',
+      dni: '', fecha_nacimiento: '', lugar_nacimiento: '',
       estado_civil: '', genero: '', direccion: '', distrito: '', provincia: '', departamento: '',
-      telefono: '', telefono_emergencia: '',
+      telefono: '', telefono_emergencia: '', contacto_emergencia: '',
       grado_instruccion: '', carrera: '', universidad: '', anio_egreso: null, colegiatura: '',
       estudios_adicionales: [],
       experiencia_laboral: [], idiomas: [], habilidades: [], referencias: [],
