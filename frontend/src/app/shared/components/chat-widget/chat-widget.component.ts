@@ -270,6 +270,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id ?? 0;
+    this.chatService.setCurrentUserId(this.currentUserId);
 
     this.subscriptions.push(
       this.chatService.conversations$.subscribe((convs) => {

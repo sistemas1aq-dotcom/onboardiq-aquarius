@@ -59,10 +59,27 @@ export class ChatService {
   }
 
   sendMessage(convId: number, contenido: string): Observable<any> {
+    // Optimistic update: show message immediately
+    const tempMsg = {
+      id: Date.now(),
+      conversacion_id: convId,
+      usuario_id: this.currentUserId,
+      contenido,
+      tipo_mensaje: 'texto',
+      fecha_envio: new Date().toISOString(),
+      leido: true,
+      usuario_nombre: 'Yo',
+    };
+    const currentMsgs = this.messagesSubject.value;
+    this.messagesSubject.next([...currentMsgs, tempMsg]);
+
     return this.http.post<any>(`${this.apiUrl}/chat/conversaciones/${convId}/mensajes`, { contenido }).pipe(
       tap(() => this.loadMessages(convId))
     );
   }
+
+  private currentUserId = 0;
+  setCurrentUserId(id: number): void { this.currentUserId = id; }
 
   uploadFile(convId: number, file: File, contenido?: string): Observable<any> {
     const formData = new FormData();
