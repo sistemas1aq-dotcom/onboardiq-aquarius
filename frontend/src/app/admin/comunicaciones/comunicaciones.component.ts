@@ -332,8 +332,12 @@ export class ComunicacionesComponent implements OnInit {
       },
       error: (err) => {
         this.sendingCumpleanos = false;
-        this.error = 'Error al enviar felicitaciones.';
-        console.error('Send cumpleanos error:', err);
+        const detail = err?.error?.detail || '';
+        if (detail.includes('No hay') || detail.includes('cumple')) {
+          this.showSuccess('No hay cumpleaños hoy. Las felicitaciones se envían cuando hay cumpleañeros.');
+        } else {
+          this.error = detail || 'Error al enviar felicitaciones.';
+        }
       },
     });
   }
@@ -347,8 +351,12 @@ export class ComunicacionesComponent implements OnInit {
       },
       error: (err) => {
         this.sendingFestividad = false;
-        this.error = 'Error al enviar saludo de festividad.';
-        console.error('Send festividad error:', err);
+        const detail = err?.error?.detail || '';
+        if (detail.includes('No hay festividad')) {
+          this.showSuccess('No hay festividad activa para hoy. Los saludos se envían en fechas de festividad.');
+        } else {
+          this.error = detail || 'Error al enviar saludo de festividad.';
+        }
       },
     });
   }
