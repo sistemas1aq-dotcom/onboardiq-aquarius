@@ -19,3 +19,4 @@ from .evaluacion_desempeno import EvaluacionDesempeno, CriterioEvaluacion, Evalu
 from .chat import ChatConversacion, ChatParticipante, ChatMensaje
 from .aprobador import AprobadorPostulante
 from .maestro import MaestroArea, MaestroCargo
+from .email_plantilla import EmailPlantilla

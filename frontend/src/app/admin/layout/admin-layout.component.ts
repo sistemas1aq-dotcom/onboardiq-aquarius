@@ -5,12 +5,13 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { ChatWidgetComponent } from '../../shared/components/chat-widget/chat-widget.component';
 import { ManualComponent } from '../../shared/components/manual/manual.component';
+import { DailyCheckComponent } from '../../shared/components/daily-check/daily-check.component';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, ChatWidgetComponent, ManualComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, ChatWidgetComponent, ManualComponent, DailyCheckComponent],
   template: `
     <div class="min-h-screen bg-gray-50">
       <app-sidebar
@@ -44,6 +45,7 @@ import { AuthService } from '../../core/services/auth.service';
       </div>
       <app-chat-widget></app-chat-widget>
       <app-manual [isOpen]="manualOpen" (close)="manualOpen = false"></app-manual>
+      <app-daily-check></app-daily-check>
     </div>
   `,
 })

@@ -91,6 +91,11 @@ export const ADMIN_ROUTES: Routes = [
         path: 'cargos',
         loadComponent: () =>
           import('./maestros/cargos/cargos.component').then((m) => m.CargosComponent)
+      },
+      {
+        path: 'plantillas-email',
+        loadComponent: () =>
+          import('./plantillas-email/plantillas-email.component').then((m) => m.PlantillasEmailComponent)
       }
     ]
   }

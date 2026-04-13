@@ -34,3 +34,44 @@ class FestividadResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# --- Daily Check (check-hoy) ---
+
+class CumpleanosHoyItem(BaseModel):
+    id: int
+    nombre: str
+    email: str
+
+
+class FestividadHoyItem(BaseModel):
+    nombre: str
+    mensaje: str
+
+
+class CheckHoyResponse(BaseModel):
+    cumpleanos: list[CumpleanosHoyItem] = []
+    festividad: Optional[FestividadHoyItem] = None
+    ya_enviado_cumpleanos: bool = False
+    ya_enviado_festividad: bool = False
+
+
+# --- Email Plantillas ---
+
+class PlantillaResponse(BaseModel):
+    id: int
+    tipo: str
+    asunto: str
+    contenido: str
+    variables_disponibles: Optional[str] = None
+    activa: bool
+    fecha_actualizacion: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PlantillaUpdate(BaseModel):
+    asunto: Optional[str] = None
+    contenido: Optional[str] = None
+    activa: Optional[bool] = None

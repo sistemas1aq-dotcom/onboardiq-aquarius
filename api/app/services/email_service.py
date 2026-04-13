@@ -86,9 +86,41 @@ def send_bulk_email(recipients: list[str], subject: str, html_body: str) -> dict
     return {"sent": sent, "failed": failed}
 
 
+# ---- DB Template Loader ----
+
+def _load_custom_template(tipo: str, variables: dict[str, str]) -> str | None:
+    """Try to load a custom template from the DB. Returns rendered HTML or None."""
+    try:
+        from ..models.database import SessionLocal
+        from ..models.email_plantilla import EmailPlantilla
+
+        db = SessionLocal()
+        try:
+            plantilla = db.query(EmailPlantilla).filter(
+                EmailPlantilla.tipo == tipo,
+                EmailPlantilla.activa == True,
+            ).first()
+            if not plantilla:
+                return None
+            contenido = plantilla.contenido
+            for key, value in variables.items():
+                contenido = contenido.replace(key, value)
+            return contenido
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning(f"Could not load custom template '{tipo}': {e}")
+        return None
+
+
 # ---- HTML Templates ----
 
 def template_credenciales(nombre: str, email: str, password: str, puesto: str) -> str:
+    custom = _load_custom_template("credenciales", {
+        "{nombre}": nombre, "{email}": email, "{password}": password, "{puesto}": puesto,
+    })
+    if custom:
+        return custom
     return f"""
     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#0a1f3d,#1a7ec5);padding:30px;text-align:center">
@@ -112,6 +144,9 @@ def template_credenciales(nombre: str, email: str, password: str, puesto: str) -
 
 
 def template_bienvenida(nombre: str, puesto: str) -> str:
+    custom = _load_custom_template("bienvenida", {"{nombre}": nombre, "{puesto}": puesto})
+    if custom:
+        return custom
     return f"""
     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#0a1f3d,#10b981);padding:30px;text-align:center">
@@ -130,6 +165,9 @@ def template_bienvenida(nombre: str, puesto: str) -> str:
 
 
 def template_cesado(nombre: str, puesto: str) -> str:
+    custom = _load_custom_template("cesado", {"{nombre}": nombre, "{puesto}": puesto})
+    if custom:
+        return custom
     return f"""
     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#0a1f3d,#64748b);padding:30px;text-align:center">
@@ -145,6 +183,9 @@ def template_cesado(nombre: str, puesto: str) -> str:
 
 
 def template_cumpleanos(nombre: str) -> str:
+    custom = _load_custom_template("cumpleanos", {"{nombre}": nombre})
+    if custom:
+        return custom
     return f"""
     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#7c3aed,#ec4899);padding:30px;text-align:center">
@@ -161,6 +202,9 @@ def template_cumpleanos(nombre: str) -> str:
 
 
 def template_festividad(nombre_festividad: str, mensaje: str) -> str:
+    custom = _load_custom_template("festividad", {"{nombre_festividad}": nombre_festividad, "{mensaje}": mensaje})
+    if custom:
+        return custom
     return f"""
     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
         <div style="background:linear-gradient(135deg,#0a1f3d,#1a7ec5);padding:30px;text-align:center">

@@ -1,7 +1,8 @@
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func as sa_func, cast, Date
 from typing import Optional
 
 from ..models.database import get_db
@@ -10,8 +11,18 @@ from ..models.postulante import Postulante, FichaPersonal
 from ..models.anuncio import Anuncio
 from ..models.comunicacion import ComunicacionLog
 from ..models.festividad import Festividad
+from ..models.email_plantilla import EmailPlantilla
 from ..auth.dependencies import require_role
-from ..schemas.comunicacion import ComunicacionResponse, CumpleanosResponse, FestividadResponse
+from ..schemas.comunicacion import (
+    ComunicacionResponse,
+    CumpleanosResponse,
+    FestividadResponse,
+    CheckHoyResponse,
+    CumpleanosHoyItem,
+    FestividadHoyItem,
+    PlantillaResponse,
+    PlantillaUpdate,
+)
 from ..services.email_service import (
     send_email,
     send_bulk_email,
@@ -264,3 +275,180 @@ def historial_comunicaciones(
     if estado:
         query = query.filter(ComunicacionLog.estado == estado)
     return query.order_by(ComunicacionLog.id.desc()).offset(skip).limit(limit).all()
+
+
+# ==================== FEATURE 1: Daily Check ====================
+
+@router.get("/check-hoy", response_model=CheckHoyResponse)
+def check_hoy(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["admin", "evaluador"])),
+):
+    """Verifica cumpleanos y festividades de hoy para el modal de login."""
+    hoy = datetime.now()
+    mes_dia = (hoy.month, hoy.day)
+    hoy_str = hoy.strftime("%m-%d")
+    hoy_date = hoy.date()
+
+    # --- Cumpleanos de hoy ---
+    fichas = db.query(FichaPersonal).all()
+    cumpleaneros: list[CumpleanosHoyItem] = []
+    for ficha in fichas:
+        if ficha.fecha_nacimiento and (ficha.fecha_nacimiento.month, ficha.fecha_nacimiento.day) == mes_dia:
+            postulante = db.query(Postulante).filter(Postulante.id == ficha.postulante_id).first()
+            if postulante:
+                usuario = db.query(Usuario).filter(Usuario.id == postulante.usuario_id).first()
+                if usuario and usuario.activo:
+                    cumpleaneros.append(CumpleanosHoyItem(
+                        id=usuario.id,
+                        nombre=usuario.nombre,
+                        email=usuario.email,
+                    ))
+
+    # --- Festividad de hoy ---
+    festividad_db = db.query(Festividad).filter(
+        Festividad.fecha == hoy_str,
+        Festividad.activa == True,
+    ).first()
+    festividad_item = None
+    if festividad_db:
+        festividad_item = FestividadHoyItem(
+            nombre=festividad_db.nombre,
+            mensaje=festividad_db.mensaje or "",
+        )
+
+    # --- Ya enviado hoy? Check comunicaciones_log for today ---
+    ya_enviado_cumpleanos = db.query(ComunicacionLog).filter(
+        ComunicacionLog.tipo == "cumpleanos",
+        cast(ComunicacionLog.fecha_envio, Date) == hoy_date,
+    ).first() is not None
+
+    ya_enviado_festividad = db.query(ComunicacionLog).filter(
+        ComunicacionLog.tipo == "festividad",
+        cast(ComunicacionLog.fecha_envio, Date) == hoy_date,
+    ).first() is not None
+
+    return CheckHoyResponse(
+        cumpleanos=cumpleaneros,
+        festividad=festividad_item,
+        ya_enviado_cumpleanos=ya_enviado_cumpleanos,
+        ya_enviado_festividad=ya_enviado_festividad,
+    )
+
+
+# ==================== FEATURE 2: Email Plantillas ====================
+
+DEFAULT_PLANTILLAS = [
+    {
+        "tipo": "credenciales",
+        "asunto": "Tus credenciales de acceso - OnboardIQ Aquarius",
+        "variables_disponibles": "{nombre},{email},{password},{puesto}",
+    },
+    {
+        "tipo": "bienvenida",
+        "asunto": "Bienvenida - {nombre} se une al equipo",
+        "variables_disponibles": "{nombre},{puesto}",
+    },
+    {
+        "tipo": "cesado",
+        "asunto": "Comunicado al personal - {nombre}",
+        "variables_disponibles": "{nombre},{puesto}",
+    },
+    {
+        "tipo": "cumpleanos",
+        "asunto": "Feliz Cumpleanos, {nombre}!",
+        "variables_disponibles": "{nombre}",
+    },
+    {
+        "tipo": "festividad",
+        "asunto": "Aquarius - {nombre_festividad}",
+        "variables_disponibles": "{nombre_festividad},{mensaje}",
+    },
+    {
+        "tipo": "anuncio",
+        "asunto": "{titulo}",
+        "variables_disponibles": "{titulo},{contenido}",
+    },
+]
+
+
+def _seed_default_plantillas(db: Session) -> None:
+    """Seed default templates if table is empty."""
+    from ..services.email_service import (
+        template_credenciales,
+        template_bienvenida,
+        template_cesado,
+        template_cumpleanos,
+        template_festividad,
+    )
+
+    existing = db.query(EmailPlantilla).count()
+    if existing > 0:
+        return
+
+    default_contents = {
+        "credenciales": template_credenciales("{nombre}", "{email}", "{password}", "{puesto}"),
+        "bienvenida": template_bienvenida("{nombre}", "{puesto}"),
+        "cesado": template_cesado("{nombre}", "{puesto}"),
+        "cumpleanos": template_cumpleanos("{nombre}"),
+        "festividad": template_festividad("{nombre_festividad}", "{mensaje}"),
+        "anuncio": """<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb">
+        <div style="background:linear-gradient(135deg,#0a1f3d,#1a7ec5);padding:30px;text-align:center">
+            <h1 style="color:#fff;margin:0;font-size:22px">{titulo}</h1>
+        </div>
+        <div style="padding:30px">
+            <p style="color:#64748b;font-size:14px">{contenido}</p>
+        </div>
+        <div style="background:#f8fafc;padding:15px;text-align:center;border-top:1px solid #e5e7eb">
+            <p style="margin:0;color:#94a3b8;font-size:11px">OnboardIQ Aquarius — Recruit System</p>
+        </div>
+    </div>""",
+    }
+
+    for tmpl in DEFAULT_PLANTILLAS:
+        plantilla = EmailPlantilla(
+            tipo=tmpl["tipo"],
+            asunto=tmpl["asunto"],
+            contenido=default_contents.get(tmpl["tipo"], ""),
+            variables_disponibles=tmpl["variables_disponibles"],
+            activa=True,
+        )
+        db.add(plantilla)
+
+    db.commit()
+    logger.info("Default email plantillas seeded")
+
+
+@router.get("/plantillas", response_model=list[PlantillaResponse])
+def listar_plantillas(
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["admin"])),
+):
+    """Lista todas las plantillas de email. Si no existen, crea las por defecto."""
+    _seed_default_plantillas(db)
+    return db.query(EmailPlantilla).order_by(EmailPlantilla.tipo).all()
+
+
+@router.put("/plantillas/{tipo}", response_model=PlantillaResponse)
+def actualizar_plantilla(
+    tipo: str,
+    datos: PlantillaUpdate,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_role(["admin"])),
+):
+    """Actualiza una plantilla de email por tipo."""
+    plantilla = db.query(EmailPlantilla).filter(EmailPlantilla.tipo == tipo).first()
+    if not plantilla:
+        raise HTTPException(status_code=404, detail=f"Plantilla '{tipo}' no encontrada")
+
+    if datos.asunto is not None:
+        plantilla.asunto = datos.asunto
+    if datos.contenido is not None:
+        plantilla.contenido = datos.contenido
+    if datos.activa is not None:
+        plantilla.activa = datos.activa
+
+    plantilla.fecha_actualizacion = datetime.now()
+    db.commit()
+    db.refresh(plantilla)
+    return plantilla
