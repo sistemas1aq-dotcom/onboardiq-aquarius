@@ -51,7 +51,7 @@ interface ResultadoEvaluacion {
   imports: [CommonModule, ProgressBarComponent, StatusBadgeComponent],
   template: `
     <div>
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">Mis Evaluaciones</h1>
+      <h1 class="text-2xl font-bold text-gray-900 mb-6">Mi Selección</h1>
 
       <!-- Loading -->
       <div *ngIf="loading" class="flex items-center justify-center py-20">

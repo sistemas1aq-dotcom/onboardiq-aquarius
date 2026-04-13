@@ -181,7 +181,7 @@ import { environment } from '../../../environments/environment';
       <!-- ============ LIST VIEW ============ -->
       <div *ngIf="!detailEval">
         <div class="flex items-center justify-between mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">Evaluaciones</h1>
+          <h1 class="text-2xl font-bold text-gray-900">Selección</h1>
         </div>
 
         <!-- Tabs -->
@@ -190,7 +190,7 @@ import { environment } from '../../../environments/environment';
             (click)="activeTab = 'evaluaciones'"
             class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
             [ngClass]="activeTab === 'evaluaciones' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-          >Evaluaciones</button>
+          >Selección</button>
           <button
             (click)="activeTab = 'preguntas'; loadAllPreguntas()"
             class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
