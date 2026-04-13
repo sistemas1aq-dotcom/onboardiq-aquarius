@@ -15,6 +15,7 @@ class Postulante(Base):
     riesgo = Column(String(10), default="bajo")
     fecha_registro = Column(DateTime, server_default=func.now())
     comentarios = Column(String)
+    area = Column(String(100))
 
     usuario = relationship("Usuario")
     ficha = relationship("FichaPersonal", uselist=False, back_populates="postulante")
