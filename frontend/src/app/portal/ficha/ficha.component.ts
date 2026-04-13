@@ -491,7 +491,7 @@ export class FichaComponent implements OnInit {
   errorMsg = '';
   activeTab = 0;
 
-  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas', 'Salud'];
+  tabs = ['Datos Personales', 'Formación', 'Experiencia Laboral', 'Idiomas y Habilidades', 'Referencias', 'Expectativas'];
   estadosCiviles = ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Viudo/a', 'Conviviente'];
   gradosInstruccion = ['Secundaria Completa', 'Técnico', 'Universitario Incompleto', 'Bachiller', 'Titulado', 'Maestría', 'Doctorado'];
   niveles = ['Básico', 'Intermedio', 'Avanzado', 'Nativo'];
