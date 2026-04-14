@@ -434,15 +434,26 @@ def submit_evaluacion(
         db.add(respuesta)
 
     score = int((puntaje_obtenido / total_puntaje * 100)) if total_puntaje > 0 else 0
+    puntaje_minimo = evaluacion.puntaje_minimo if evaluacion else 60
+    aprobado = score >= puntaje_minimo
+
     ep.puntaje_obtenido = score
     ep.estado = "completada"
     ep.fecha_completado = datetime.now(timezone.utc)
+
+    # Si desaprobó, cambiar estado del postulante a "Rechazado"
+    if not aprobado:
+        postulante = db.query(Postulante).filter(Postulante.id == ep.postulante_id).first()
+        if postulante and postulante.estado == "En Evaluacion":
+            postulante.estado = "Rechazado"
+            postulante.comentarios = f"Desaprobó evaluación '{evaluacion.nombre}' con {score}% (mínimo: {puntaje_minimo}%)"
+
     db.commit()
 
     return {
         "message": "Evaluacion completada",
         "puntaje_obtenido": score,
-        "aprobado": score >= (evaluacion.puntaje_minimo if evaluacion else 60),
+        "aprobado": aprobado,
         "total_preguntas": len(data.respuestas),
     }
 
