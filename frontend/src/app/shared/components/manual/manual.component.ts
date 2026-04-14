@@ -157,7 +157,7 @@ interface ContentBlock {
 
             <!-- Footer -->
             <div class="border-t border-gray-200 pt-6 pb-8 text-center">
-              <p class="text-sm text-gray-400">OnboardIQ Aquarius - Manual de Usuario v1.0</p>
+              <p class="text-sm text-gray-400">OnboardIQ Aquarius - Manual de Usuario v2.0</p>
               <p class="text-xs text-gray-300 mt-1">Powered by Aquarius Consulting 2026</p>
             </div>
           </div>
@@ -196,23 +196,25 @@ export class ManualComponent {
       title: '1. Introduccion',
       content: [
         { type: 'subtitle', text: 'Que es OnboardIQ Aquarius' },
-        { type: 'paragraph', text: 'OnboardIQ Aquarius es una plataforma integral de gestion de Recursos Humanos disenada para optimizar los procesos de reclutamiento, seleccion, onboarding y administracion de personal. Permite gestionar postulantes, evaluaciones, legajos, capacitaciones, comunicaciones y mucho mas desde una unica interfaz web moderna y responsiva.' },
+        { type: 'paragraph', text: 'OnboardIQ Aquarius es una plataforma integral de gestion de Recursos Humanos disenada para optimizar los procesos de reclutamiento, seleccion, onboarding y administracion de personal. Permite gestionar postulantes, evaluaciones de seleccion, legajos, capacitaciones, evaluaciones de desempeno, comunicaciones internas y mucho mas desde una unica interfaz web moderna y responsiva.' },
+        { type: 'paragraph', text: 'La plataforma es una Progressive Web App (PWA), lo que significa que puede instalarse como aplicacion nativa en cualquier dispositivo desde el navegador. Ademas, cuenta con un diseno mobile-first con sidebar tipo drawer para una experiencia optima en dispositivos moviles.' },
         { type: 'subtitle', text: 'Arquitectura del sistema' },
         { type: 'paragraph', text: 'El sistema esta compuesto por tres capas principales:' },
         { type: 'steps', items: [
-          'Frontend: Aplicacion Angular 18 con TailwindCSS. Interfaz responsiva para escritorio y dispositivos moviles.',
-          'Backend: API REST desarrollada en Node.js con Express. Maneja la logica de negocio, autenticacion JWT y envio de correos.',
-          'Base de Datos: PostgreSQL para almacenamiento relacional de toda la informacion del sistema.'
+          'Frontend: Aplicacion Angular 18 con TailwindCSS. Interfaz responsiva para escritorio y dispositivos moviles. Desplegada en Vercel.',
+          'Backend: API REST desarrollada en FastAPI (Python). Maneja la logica de negocio, autenticacion JWT, envio de correos via Brevo HTTP API e inteligencia artificial mediante Anthropic Claude API. Desplegada en Railway.',
+          'Base de Datos: PostgreSQL alojada en Neon para almacenamiento relacional de toda la informacion del sistema.'
         ]},
         { type: 'subtitle', text: 'Roles de usuario' },
-        { type: 'paragraph', text: 'El sistema maneja cuatro roles con diferentes niveles de acceso:' },
+        { type: 'paragraph', text: 'El sistema maneja tres roles con diferentes niveles de acceso:' },
         { type: 'steps', items: [
-          'Administrador (admin): Acceso completo a todos los modulos. Puede gestionar usuarios, configuraciones, evaluaciones, postulantes y toda la operacion del sistema.',
-          'Evaluador: Puede gestionar postulantes, crear y revisar evaluaciones, aprobar/rechazar candidatos y acceder a reportes.',
-          'Postulante: Accede a su portal personal donde puede completar su ficha, responder evaluaciones, subir documentos y ver sus entrevistas programadas.',
-          'Trabajador: Tiene acceso a todo lo del postulante mas funcionalidades adicionales como firma digital, datos bancarios, derechohabientes, regimen pensionario y capacitaciones.'
+          'Administrador (admin): Acceso completo a todos los modulos del panel administrativo y del portal. Puede gestionar usuarios, configuraciones, evaluaciones, postulantes, comunicaciones y toda la operacion del sistema.',
+          'Trabajador: Accede al panel administrativo completo (dashboard, postulantes, seleccion, legajo, etc.) y tambien a las funcionalidades del portal (ficha personal, documentos, derechohabientes, capacitaciones, evaluaciones de desempeno y anuncios).',
+          'Postulante: Accede unicamente al portal personal donde puede completar su ficha, responder evaluaciones de seleccion, subir documentos, ver entrevistas programadas y consultar anuncios.'
         ]},
         { type: 'tip', text: 'El rol determina automaticamente que menu lateral y que funcionalidades ve cada usuario al ingresar al sistema.' },
+        { type: 'subtitle', text: 'Pagina de inicio' },
+        { type: 'paragraph', text: 'Al acceder al sistema, la pagina de inicio (landing) presenta dos portales de acceso: "Portal Trabajadores" y "Portal Postulante". Cada uno lleva al login correspondiente con las funcionalidades apropiadas segun el perfil. En la parte superior se muestran dos badges de perfil: Trabajador y Postulante.' },
       ]
     },
     // ===== 2. INICIO DE SESION =====
@@ -224,17 +226,24 @@ export class ManualComponent {
         { type: 'subtitle', text: 'Como ingresar al sistema' },
         { type: 'steps', items: [
           'Abra el navegador web y acceda a la URL del sistema proporcionada por su administrador.',
+          'En la pagina de inicio, seleccione el portal correspondiente: "Portal Trabajadores" o "Portal Postulante".',
           'En la pantalla de inicio de sesion, ingrese su correo electronico en el campo "Email".',
           'Ingrese su contrasena en el campo "Contrasena".',
           'Haga clic en el boton "Iniciar Sesion".',
-          'El sistema lo redirigira automaticamente al dashboard correspondiente a su rol.'
+          'El sistema lo redirigira automaticamente al dashboard o portal correspondiente a su rol.'
         ]},
-        { type: 'screen', text: 'Pantalla de login con campos de email, contrasena y boton de inicio de sesion' },
+        { type: 'screen', text: 'Pagina de inicio con los dos portales y pantalla de login con campos de email y contrasena' },
+        { type: 'subtitle', text: 'Verificacion de eventos al iniciar sesion' },
+        { type: 'paragraph', text: 'Al iniciar sesion como administrador o trabajador, el sistema verifica automaticamente si hay cumpleanos de colaboradores o festividades programadas para el dia actual. Si los hay, se muestra un popup informativo con los datos relevantes antes de acceder al dashboard.' },
+        { type: 'note', text: 'Esta verificacion asegura que no se pasen por alto fechas importantes como cumpleanos de equipo o festividades de la empresa.' },
         { type: 'subtitle', text: 'Recuperar contrasena' },
-        { type: 'paragraph', text: 'Si olvido su contrasena, contacte al administrador del sistema para que le asigne una nueva desde el modulo de Usuarios. El administrador puede cambiar la contrasena de cualquier usuario desde la edicion de su perfil.' },
+        { type: 'paragraph', text: 'Si olvido su contrasena, contacte al administrador del sistema para que le asigne una nueva desde el modulo de Admin Usuarios. El administrador puede cambiar la contrasena de cualquier usuario desde la edicion de su perfil.' },
         { type: 'subtitle', text: 'Primer ingreso' },
-        { type: 'paragraph', text: 'Si fue registrado por carga masiva, su contrasena por defecto es: Aquarius2025. Se recomienda solicitar al administrador que la cambie en su primer acceso.' },
+        { type: 'paragraph', text: 'Si fue registrado por carga masiva, su contrasena por defecto es: Aquarius2026. Se recomienda solicitar al administrador que la cambie en su primer acceso.' },
         { type: 'warning', text: 'Por seguridad, cambie su contrasena por defecto lo antes posible. Contacte al administrador si necesita una nueva clave.' },
+        { type: 'subtitle', text: 'Instalar como aplicacion (PWA)' },
+        { type: 'paragraph', text: 'OnboardIQ Aquarius es una Progressive Web App. Puede instalarla como aplicacion nativa desde su navegador: en Chrome, busque el icono de instalacion en la barra de direcciones o en el menu del navegador seleccione "Instalar aplicacion". La app se abrira en su propia ventana sin barra de navegador.' },
+        { type: 'tip', text: 'Instalar la PWA le permite acceder mas rapido al sistema y recibir una experiencia similar a una aplicacion nativa en su escritorio o telefono.' },
       ]
     },
     // ===== 3. DASHBOARD =====
@@ -243,13 +252,13 @@ export class ManualComponent {
       icon: '&#128202;',
       title: '3. Dashboard',
       content: [
-        { type: 'paragraph', text: 'El Dashboard es la pantalla principal que se muestra al iniciar sesion como Administrador o Evaluador. Proporciona una vision general del estado del sistema de reclutamiento.' },
+        { type: 'paragraph', text: 'El Dashboard es la pantalla principal que se muestra al iniciar sesion como Administrador o Trabajador. Proporciona una vision general del estado del sistema de reclutamiento y gestion de personal.' },
         { type: 'subtitle', text: 'KPIs y metricas' },
         { type: 'paragraph', text: 'En la parte superior se muestran tarjetas con indicadores clave (KPIs):' },
         { type: 'steps', items: [
           'Total de Postulantes: Numero total de postulantes registrados en el sistema.',
-          'Evaluaciones Activas: Cantidad de evaluaciones que estan actualmente en curso.',
-          'Tasa de Aprobacion: Porcentaje de postulantes que han sido aprobados.',
+          'Evaluaciones Activas: Cantidad de evaluaciones de seleccion que estan actualmente en curso.',
+          'Tasa de Aprobacion: Porcentaje de postulantes que han sido aprobados en el proceso.',
           'Postulantes Nuevos (mensual): Cantidad de postulantes registrados en el mes actual.'
         ]},
         { type: 'subtitle', text: 'Graficos' },
@@ -266,18 +275,21 @@ export class ManualComponent {
       icon: '&#128101;',
       title: '4. Gestion de Postulantes',
       content: [
-        { type: 'paragraph', text: 'Este modulo permite administrar todo el ciclo de vida de los postulantes, desde su registro hasta su aprobacion o rechazo.' },
+        { type: 'paragraph', text: 'Este modulo permite administrar todo el ciclo de vida de los postulantes, desde su registro hasta su aprobacion o rechazo. Accesible desde "Gestion Postulantes" en el menu lateral.' },
         { type: 'subtitle', text: 'Crear nuevo postulante' },
         { type: 'steps', items: [
-          'Navegue a "Postulantes" en el menu lateral.',
+          'Navegue a "Gestion Postulantes" en el menu lateral.',
           'Haga clic en el boton "Nuevo Postulante".',
-          'Complete el formulario con los datos requeridos: nombre, apellido, email, telefono, cargo al que postula.',
+          'Complete el formulario con los datos requeridos: Nombres, Apellido Paterno, Apellido Materno, Email, DNI y Telefono.',
+          'Seleccione el Area del combo desplegable (listado de areas configuradas en Maestros).',
+          'Seleccione el Cargo del combo desplegable (filtrado automaticamente segun el area elegida). La combinacion de Area + Cargo define el puesto al que postula.',
           'Haga clic en "Guardar" para registrar al postulante.',
-          'El sistema creara automaticamente un usuario con rol "postulante" y enviara las credenciales por correo.'
+          'El sistema creara automaticamente un usuario con rol "postulante" y enviara las credenciales por correo electronico.'
         ]},
-        { type: 'tip', text: 'Tambien puede registrar postulantes masivamente usando el modulo de Carga Masiva.' },
+        { type: 'note', text: 'El campo de Cargo se filtra automaticamente segun el Area seleccionada. Solo se muestran los cargos vinculados a esa area.' },
+        { type: 'tip', text: 'Tambien puede registrar postulantes masivamente usando el modulo de Carga Masiva (ver seccion 12).' },
         { type: 'subtitle', text: 'Ver detalle del postulante' },
-        { type: 'paragraph', text: 'Haga clic en el nombre de cualquier postulante en la tabla para abrir su ficha detallada. Aqui podra ver toda su informacion personal, documentos subidos, evaluaciones asignadas y estado actual.' },
+        { type: 'paragraph', text: 'Haga clic en el nombre de cualquier postulante en la tabla para abrir su ficha detallada. Aqui podra ver toda su informacion personal, documentos subidos, evaluaciones asignadas y estado actual en el proceso.' },
         { type: 'subtitle', text: 'Aprobar o Rechazar postulante' },
         { type: 'steps', items: [
           'Acceda al detalle del postulante.',
@@ -287,22 +299,22 @@ export class ManualComponent {
           'El estado del postulante se actualizara y se registrara en el log de auditoria.'
         ]},
         { type: 'subtitle', text: 'Ver legajo' },
-        { type: 'paragraph', text: 'Desde el detalle del postulante puede acceder a su legajo completo haciendo clic en "Ver Legajo". Esto lo llevara al modulo de Legajo con todas las pestanas de informacion.' },
+        { type: 'paragraph', text: 'Desde el detalle del postulante puede acceder a su legajo completo haciendo clic en "Ver Legajo". Esto lo llevara al modulo de Legajo Trabajador con todas las pestanas de informacion.' },
         { type: 'subtitle', text: 'Filtros y busqueda' },
         { type: 'paragraph', text: 'La tabla de postulantes incluye un campo de busqueda para filtrar por nombre o email, y filtros por estado (pendiente, aprobado, rechazado). Use estos filtros para encontrar rapidamente al postulante que busca.' },
         { type: 'screen', text: 'Tabla de postulantes con filtros de busqueda y estado, columnas de nombre, email, cargo, estado y acciones' },
       ]
     },
-    // ===== 5. EVALUACIONES =====
+    // ===== 5. SELECCION =====
     {
-      id: 'evaluaciones',
+      id: 'seleccion',
       icon: '&#128221;',
-      title: '5. Evaluaciones',
+      title: '5. Seleccion',
       content: [
-        { type: 'paragraph', text: 'El modulo de Evaluaciones permite crear cuestionarios, asignarlos a postulantes y gestionar flujos de aprobacion multi-nivel.' },
-        { type: 'subtitle', text: 'Crear evaluacion' },
+        { type: 'paragraph', text: 'El modulo de Seleccion (anteriormente llamado Evaluaciones) permite crear cuestionarios de seleccion, asignarlos a postulantes, configurar cadenas de aprobadores y gestionar flujos de aprobacion.' },
+        { type: 'subtitle', text: 'Crear evaluacion de seleccion' },
         { type: 'steps', items: [
-          'Navegue a "Evaluaciones" en el menu lateral.',
+          'Navegue a "Seleccion" en el menu lateral.',
           'Haga clic en "Nueva Evaluacion".',
           'Ingrese el titulo, descripcion y configure los parametros de la evaluacion.',
           'Guarde la evaluacion para comenzar a agregar preguntas.'
@@ -323,21 +335,21 @@ export class ManualComponent {
           'Seleccione los postulantes de la lista y confirme la asignacion.',
           'Los postulantes seleccionados recibiran una notificacion por correo electronico con instrucciones para responder la evaluacion.'
         ]},
-        { type: 'note', text: 'Los postulantes asignados veran la evaluacion disponible en su portal personal, seccion "Mis Evaluaciones".' },
-        { type: 'subtitle', text: 'Configurar aprobadores' },
-        { type: 'paragraph', text: 'Desde la seccion de Evaluaciones puede configurar un flujo de aprobacion multi-nivel. Haga clic en "Configurar Aprobadores" y defina los niveles de aprobacion (Nivel 1, Nivel 2, etc.). Asigne usuarios con rol evaluador o admin a cada nivel. Las aprobaciones se ejecutan en orden secuencial.' },
+        { type: 'note', text: 'Los postulantes asignados veran la evaluacion disponible en su portal personal, seccion "Seleccion".' },
+        { type: 'subtitle', text: 'Configurar cadena de aprobadores' },
+        { type: 'paragraph', text: 'Desde el detalle de la evaluacion puede configurar un flujo de aprobacion con multiples niveles. Haga clic en "Configurar Aprobadores" y defina los niveles de aprobacion (Nivel 1, Nivel 2, etc.). Asigne usuarios con rol admin o trabajador a cada nivel. Las aprobaciones se ejecutan en orden secuencial: el nivel 1 debe aprobar antes de que pase al nivel 2.' },
         { type: 'subtitle', text: 'Ver detalle con puntajes' },
         { type: 'paragraph', text: 'En el detalle de cada evaluacion puede ver la lista de postulantes asignados con su estado (pendiente, completada) y el puntaje obtenido. Puede hacer clic en cada postulante para ver sus respuestas individuales.' },
         { type: 'subtitle', text: 'Flujo de aprobacion' },
         { type: 'steps', items: [
-          'Cuando un postulante completa la evaluacion, esta pasa al primer nivel de aprobacion.',
-          'El aprobador de nivel 1 recibe notificacion y puede aprobar o rechazar.',
-          'Si aprueba, pasa automaticamente al siguiente nivel (si existe).',
-          'El proceso continua hasta completar todos los niveles.',
-          'El aprobador puede filtrar por area para ver solo las evaluaciones de su competencia.'
+          'Cuando un postulante completa la evaluacion, esta pasa al primer nivel de aprobacion configurado.',
+          'El aprobador de nivel 1 recibe notificacion y puede aprobar o rechazar directamente dentro del detalle de la evaluacion.',
+          'Si aprueba, la evaluacion pasa automaticamente al siguiente nivel (si existe).',
+          'El proceso continua hasta completar todos los niveles de la cadena.',
+          'Los aprobadores pueden acceder rapidamente a sus pendientes desde el modulo "Mis Aprobaciones" (ver seccion 15).'
         ]},
         { type: 'screen', text: 'Detalle de evaluacion mostrando preguntas, postulantes asignados con puntajes y panel de aprobadores' },
-        { type: 'tip', text: 'Puede filtrar las evaluaciones pendientes de aprobacion por area usando los filtros de correo disponibles.' },
+        { type: 'tip', text: 'Configure los aprobadores antes de asignar postulantes para asegurar que el flujo funcione correctamente desde el inicio.' },
       ]
     },
     // ===== 6. LEGAJO =====
@@ -346,27 +358,28 @@ export class ManualComponent {
       icon: '&#128451;',
       title: '6. Legajo del Trabajador',
       content: [
-        { type: 'paragraph', text: 'El Legajo es el expediente digital completo de cada trabajador o postulante. Contiene toda la informacion organizada en pestanas.' },
+        { type: 'paragraph', text: 'El Legajo es el expediente digital completo de cada trabajador o postulante. Contiene toda la informacion organizada en pestanas, accesible desde "Legajo Trabajador" en el menu lateral.' },
         { type: 'subtitle', text: 'Buscar trabajador' },
         { type: 'steps', items: [
-          'Navegue a "Legajo" en el menu lateral.',
+          'Navegue a "Legajo Trabajador" en el menu lateral.',
           'Use el campo de busqueda para encontrar al trabajador por nombre, apellido o documento.',
           'Haga clic en el trabajador para abrir su legajo completo.'
         ]},
         { type: 'subtitle', text: 'Pestanas del legajo' },
-        { type: 'paragraph', text: 'El legajo esta organizado en multiples pestanas:' },
+        { type: 'paragraph', text: 'El legajo esta organizado en las siguientes pestanas (las mismas 8 de Mi Ficha):' },
         { type: 'steps', items: [
-          'Datos Personales: Informacion basica del trabajador (nombre, documento, fecha de nacimiento, direccion, etc.).',
-          'Evaluaciones: Historial de todas las evaluaciones realizadas con sus puntajes.',
-          'Documentos: Archivos subidos por el trabajador o el administrador (CV, certificados, etc.).',
-          'Firmas: Documentos que requieren firma digital del trabajador.',
-          'Capacitaciones: Cursos asignados y su progreso.',
-          'Datos Bancarios: Informacion bancaria para nomina (solo trabajadores).',
-          'Derechohabientes: Familiares y dependientes registrados.',
-          'Regimen Pensionario: Informacion del regimen de pensiones.'
+          'Datos Personales: Informacion basica del trabajador (nombres, apellido paterno, apellido materno, DNI, fecha de nacimiento, genero, estado civil, direccion, telefono, email).',
+          'Formacion: Nivel educativo, institucion, carrera, fecha de inicio y fin.',
+          'Experiencia Laboral: Empresas anteriores, cargo, funciones, periodo de trabajo.',
+          'Idiomas y Habilidades: Idiomas que maneja con su nivel de competencia, y habilidades tecnicas y blandas.',
+          'Referencias: Personas de contacto que pueden dar referencias laborales o personales.',
+          'Expectativas: Disponibilidad, expectativa salarial, modalidad de trabajo preferida y otra informacion complementaria.',
+          'Datos Bancarios: Informacion bancaria para nomina (entidad, numero de cuenta, CCI).',
+          'Regimen Pensionario: Informacion del regimen de pensiones (ONP, AFP, etc.).'
         ]},
         { type: 'screen', text: 'Vista del legajo con pestanas superiores y datos del trabajador seleccionado' },
-        { type: 'tip', text: 'Puede navegar entre pestanas sin perder la informacion. Los cambios se guardan individualmente en cada seccion.' },
+        { type: 'tip', text: 'Puede navegar entre pestanas sin perder la informacion. Los cambios se guardan individualmente en cada seccion al hacer clic en Guardar.' },
+        { type: 'note', text: 'La pestana de Salud ha sido removida del sistema. Los datos de salud ya no se recopilan en la ficha.' },
       ]
     },
     // ===== 7. EMBUDO DE SELECCION =====
@@ -375,7 +388,7 @@ export class ManualComponent {
       icon: '&#127987;',
       title: '7. Embudo de Seleccion',
       content: [
-        { type: 'paragraph', text: 'El Embudo de Seleccion (funnel) proporciona una visualizacion grafica del proceso de reclutamiento, mostrando cuantos candidatos hay en cada etapa.' },
+        { type: 'paragraph', text: 'El Embudo de Seleccion (funnel) proporciona una visualizacion grafica del proceso de reclutamiento, mostrando cuantos candidatos hay en cada etapa del proceso.' },
         { type: 'subtitle', text: 'Visualizacion del funnel' },
         { type: 'paragraph', text: 'El embudo muestra las etapas del proceso de seleccion de arriba a abajo: Postulantes totales, En evaluacion, Evaluados, Aprobados, Contratados. Cada nivel muestra la cantidad de candidatos y el porcentaje respecto al nivel anterior.' },
         { type: 'screen', text: 'Embudo de seleccion con 5 niveles de colores progresivos mostrando la cantidad de candidatos en cada etapa' },
@@ -390,7 +403,7 @@ export class ManualComponent {
       icon: '&#129302;',
       title: '8. IA Insights',
       content: [
-        { type: 'paragraph', text: 'Este modulo aprovecha la inteligencia artificial para analizar candidatos, calcular scoring automatico y proporcionar asistencia mediante chat con IA.' },
+        { type: 'paragraph', text: 'Este modulo aprovecha la inteligencia artificial (Anthropic Claude API) para analizar candidatos, calcular scoring automatico y proporcionar asistencia mediante chat con IA.' },
         { type: 'subtitle', text: 'Analizar CV' },
         { type: 'steps', items: [
           'Navegue a "IA Insights" en el menu lateral.',
@@ -416,18 +429,20 @@ export class ManualComponent {
     {
       id: 'usuarios',
       icon: '&#128100;',
-      title: '9. Administracion de Usuarios',
+      title: '9. Admin Usuarios',
       content: [
-        { type: 'paragraph', text: 'Este modulo permite gestionar los usuarios del sistema: crear, editar, asignar roles, areas, cargos y controlar el acceso.' },
+        { type: 'paragraph', text: 'Este modulo permite gestionar los usuarios del sistema: crear, editar, asignar roles, areas, cargos y controlar el acceso. Accesible desde "Admin Usuarios" en el menu lateral.' },
         { type: 'subtitle', text: 'Crear usuario' },
         { type: 'steps', items: [
-          'Navegue a "Usuarios" en el menu lateral.',
+          'Navegue a "Admin Usuarios" en el menu lateral.',
           'Haga clic en "Nuevo Usuario".',
-          'Complete los campos: nombre, email, rol (admin, evaluador, postulante, trabajador).',
-          'Asigne un area y un cargo al usuario.',
+          'Complete los campos: Nombres, Apellido Paterno, Apellido Materno, Email, DNI, Telefono.',
+          'Seleccione el rol: admin, trabajador o postulante.',
+          'Seleccione un Area y un Cargo (el cargo se filtra por area seleccionada).',
           'Defina una contrasena inicial.',
           'Haga clic en "Guardar" para crear el usuario.'
         ]},
+        { type: 'note', text: 'El sistema maneja tres roles: admin, trabajador y postulante. No existe el rol de evaluador.' },
         { type: 'subtitle', text: 'Editar usuario (incluye cambiar contrasena)' },
         { type: 'steps', items: [
           'En la lista de usuarios, haga clic en el boton de edicion del usuario deseado.',
@@ -437,7 +452,7 @@ export class ManualComponent {
         ]},
         { type: 'warning', text: 'Al cambiar la contrasena de un usuario, este debera usar la nueva clave en su proximo inicio de sesion. Comunique el cambio al usuario.' },
         { type: 'subtitle', text: 'Asignar area y cargo' },
-        { type: 'paragraph', text: 'Cada usuario puede tener asignada un area (departamento) y un cargo (puesto). Estos se seleccionan de los catalogos configurados en el modulo de Maestros. El area y cargo determinan ciertos filtros automaticos en el sistema, como las evaluaciones que puede ver un evaluador.' },
+        { type: 'paragraph', text: 'Cada usuario puede tener asignada un area (departamento) y un cargo (puesto). Estos se seleccionan de los catalogos configurados en el modulo de Maestros. El area y cargo determinan ciertos filtros automaticos en el sistema.' },
         { type: 'subtitle', text: 'Activar/Desactivar usuario' },
         { type: 'paragraph', text: 'Para desactivar un usuario sin eliminarlo, use el boton de activar/desactivar en la lista de usuarios. Los usuarios desactivados no podran iniciar sesion pero se conserva toda su informacion.' },
         { type: 'screen', text: 'Tabla de usuarios con columnas: nombre, email, rol, area, cargo, estado y botones de accion' },
@@ -451,7 +466,7 @@ export class ManualComponent {
       content: [
         { type: 'paragraph', text: 'El modulo de Seguridad registra automaticamente todas las acciones realizadas en el sistema, proporcionando un log de auditoria completo para control y trazabilidad.' },
         { type: 'subtitle', text: 'Log de auditoria' },
-        { type: 'paragraph', text: 'El log registra: inicio de sesion de usuarios, creacion/edicion/eliminacion de registros, cambios de estado de postulantes, asignacion de evaluaciones, y cualquier otra operacion relevante. Cada registro incluye: fecha y hora, usuario que realizo la accion, tipo de accion, y detalle descriptivo.' },
+        { type: 'paragraph', text: 'El log registra: inicio de sesion de usuarios, creacion/edicion/eliminacion de registros, cambios de estado de postulantes, asignacion de evaluaciones, aprobaciones/rechazos y cualquier otra operacion relevante. Cada registro incluye: fecha y hora, usuario que realizo la accion, tipo de accion, y detalle descriptivo.' },
         { type: 'subtitle', text: 'Filtros' },
         { type: 'steps', items: [
           'Navegue a "Seguridad" en el menu lateral.',
@@ -469,13 +484,13 @@ export class ManualComponent {
       icon: '&#9881;',
       title: '11. Configuracion',
       content: [
-        { type: 'paragraph', text: 'El modulo de Configuracion permite ajustar los parametros generales del sistema.' },
+        { type: 'paragraph', text: 'El modulo de Configuracion permite ajustar los parametros generales del sistema. Solo accesible para administradores.' },
         { type: 'subtitle', text: 'Parametros del sistema' },
-        { type: 'paragraph', text: 'Desde esta seccion puede configurar aspectos como: nombre de la empresa, logo, colores de la interfaz, parametros de correo electronico, limites de carga de archivos, y otros valores que afectan el comportamiento general de la plataforma.' },
+        { type: 'paragraph', text: 'Desde esta seccion puede configurar aspectos como: nombre de la empresa, logo, parametros de correo electronico, limites de carga de archivos, y otros valores que afectan el comportamiento general de la plataforma.' },
         { type: 'steps', items: [
           'Navegue a "Configuracion" en el menu lateral.',
           'Modifique los parametros deseados en el formulario.',
-          'Haga clic en "Guardar Cambios" para aplicar la nueva configuracion.',
+          'Haga clic en "Guardar Cambios" para aplicar la nueva configuracion.'
         ]},
         { type: 'warning', text: 'Los cambios en la configuracion afectan a todos los usuarios del sistema. Realice modificaciones con precaucion.' },
       ]
@@ -486,13 +501,25 @@ export class ManualComponent {
       icon: '&#128228;',
       title: '12. Carga Masiva',
       content: [
-        { type: 'paragraph', text: 'La Carga Masiva permite registrar multiples postulantes o trabajadores de una sola vez mediante un archivo Excel.' },
-        { type: 'subtitle', text: 'Descargar plantilla Excel' },
+        { type: 'paragraph', text: 'La Carga Masiva permite registrar multiples postulantes de una sola vez mediante un archivo Excel (.xlsx).' },
+        { type: 'subtitle', text: 'Formato del archivo Excel' },
+        { type: 'paragraph', text: 'El archivo Excel debe contener las siguientes columnas obligatorias:' },
+        { type: 'steps', items: [
+          'nombre: Nombres del postulante.',
+          'apellido_paterno: Apellido paterno del postulante.',
+          'apellido_materno: Apellido materno del postulante.',
+          'dni: Documento Nacional de Identidad.',
+          'email: Correo electronico (debe ser unico en el sistema).',
+          'area: Nombre del area (debe coincidir con un area existente en Maestros).',
+          'cargo: Nombre del cargo (debe coincidir con un cargo existente vinculado al area).',
+          'telefono: Numero de telefono de contacto.'
+        ]},
+        { type: 'subtitle', text: 'Descargar plantilla' },
         { type: 'steps', items: [
           'Navegue a "Carga Masiva" en el menu lateral.',
           'Haga clic en "Descargar Plantilla".',
-          'Se descargara un archivo Excel (.xlsx) con las columnas requeridas: nombre, apellido, email, telefono, documento, etc.',
-          'Complete la plantilla con los datos de los postulantes/trabajadores.'
+          'Se descargara un archivo Excel (.xlsx) con las columnas correctas y formato esperado.',
+          'Complete la plantilla con los datos de los postulantes.'
         ]},
         { type: 'subtitle', text: 'Subir archivo' },
         { type: 'steps', items: [
@@ -500,60 +527,100 @@ export class ManualComponent {
           'El sistema validara el formato y los datos del archivo.',
           'Se mostrara una vista previa con los registros a importar y cualquier error encontrado.',
           'Corrija los errores si los hay y vuelva a subir, o confirme la importacion.',
-          'Los registros se crearan en el sistema y se generaran las cuentas de usuario correspondientes.'
+          'Los registros se crearan en el sistema y se generaran las cuentas de usuario correspondientes con rol postulante.'
         ]},
         { type: 'subtitle', text: 'Contrasena por defecto' },
-        { type: 'paragraph', text: 'Los usuarios creados por carga masiva reciben la contrasena por defecto: Aquarius2025. Se recomienda que cada usuario la cambie en su primer ingreso.' },
-        { type: 'warning', text: 'Asegurese de que los correos electronicos sean unicos y validos. El sistema rechazara registros con emails duplicados.' },
+        { type: 'paragraph', text: 'Los usuarios creados por carga masiva reciben la contrasena por defecto: Aquarius2026. Se recomienda que el administrador comunique esto a los postulantes para que cambien su clave despues del primer ingreso.' },
+        { type: 'warning', text: 'Asegurese de que los correos electronicos sean unicos y validos. El sistema rechazara registros con emails duplicados. Los nombres de area y cargo deben coincidir exactamente con los configurados en Maestros.' },
         { type: 'screen', text: 'Pantalla de carga masiva con area de drag & drop, boton de descarga de plantilla y tabla de vista previa' },
       ]
     },
-    // ===== 13. ANUNCIOS =====
-    {
-      id: 'anuncios',
-      icon: '&#128227;',
-      title: '13. Anuncios',
-      content: [
-        { type: 'paragraph', text: 'El modulo de Anuncios permite crear y enviar comunicaciones importantes a los usuarios del sistema.' },
-        { type: 'subtitle', text: 'Crear anuncio' },
-        { type: 'steps', items: [
-          'Navegue a "Anuncios" en el menu lateral.',
-          'Haga clic en "Nuevo Anuncio".',
-          'Ingrese el titulo, contenido del anuncio y seleccione el tipo (informativo, urgente, evento, etc.).',
-          'Haga clic en "Guardar" para crear el anuncio.'
-        ]},
-        { type: 'subtitle', text: 'Enviar por email' },
-        { type: 'paragraph', text: 'Los anuncios pueden enviarse por correo electronico a los usuarios. Al crear o editar un anuncio, active la opcion de envio por email y seleccione los destinatarios.' },
-        { type: 'subtitle', text: 'Filtrar por tipo' },
-        { type: 'paragraph', text: 'En la lista de anuncios puede filtrar por tipo para encontrar rapidamente anuncios especificos. Los tipos disponibles dependen de la configuracion del sistema.' },
-        { type: 'screen', text: 'Lista de anuncios con filtros por tipo y botones de accion para editar, enviar y eliminar' },
-      ]
-    },
-    // ===== 14. COMUNICACIONES =====
+    // ===== 13. COMUNICACIONES =====
     {
       id: 'comunicaciones',
       icon: '&#128231;',
-      title: '14. Comunicaciones',
+      title: '13. Comunicaciones',
       content: [
-        { type: 'paragraph', text: 'Este modulo gestiona las comunicaciones automaticas y manuales del sistema, incluyendo correos por cumpleanos, festividades y otros eventos.' },
-        { type: 'subtitle', text: 'Cumpleanos' },
-        { type: 'paragraph', text: 'El sistema detecta automaticamente los cumpleanos de los trabajadores y puede enviar correos de felicitacion. Desde esta seccion puede ver los proximos cumpleanos y gestionar el envio de correos.' },
-        { type: 'subtitle', text: 'Festividades' },
-        { type: 'paragraph', text: 'Configure las festividades y fechas especiales que desea celebrar. El sistema puede enviar correos automaticos en estas fechas a todos los trabajadores o a grupos especificos.' },
-        { type: 'subtitle', text: 'Historial de correos' },
-        { type: 'paragraph', text: 'Consulte el historial completo de correos enviados por el sistema. Puede filtrar por fecha, tipo, destinatario y estado de envio (enviado, fallido).' },
-        { type: 'screen', text: 'Pantalla de comunicaciones con pestanas de cumpleanos, festividades e historial de correos' },
-        { type: 'tip', text: 'Asegurese de que los datos de nacimiento de los trabajadores esten completos para aprovechar la funcion de cumpleanos.' },
+        { type: 'paragraph', text: 'El modulo de Comunicaciones es un centro unificado que agrupa cuatro funcionalidades: Anuncios, Cumpleanos, Festividades e Historial de correos enviados. Se accede desde "Comunicaciones" en el menu lateral.' },
+        { type: 'subtitle', text: 'Pestana: Anuncios' },
+        { type: 'paragraph', text: 'Permite crear, editar y eliminar anuncios para comunicar informacion importante a los usuarios del sistema.' },
+        { type: 'steps', items: [
+          'Dentro de Comunicaciones, seleccione la pestana "Anuncios".',
+          'Haga clic en "Nuevo Anuncio".',
+          'Ingrese el titulo, contenido del anuncio y seleccione el tipo (informativo, urgente, evento, etc.).',
+          'Haga clic en "Guardar" para crear el anuncio.',
+          'Opcionalmente, puede enviar el anuncio por correo electronico haciendo clic en el boton de envio por email.'
+        ]},
+        { type: 'note', text: 'Los anuncios son visibles para los postulantes y trabajadores en la seccion "Anuncios" de sus respectivos portales.' },
+        { type: 'subtitle', text: 'Pestana: Cumpleanos' },
+        { type: 'paragraph', text: 'Muestra los cumpleanos de los colaboradores. El sistema detecta automaticamente los cumpleanos basandose en la fecha de nacimiento registrada en la ficha de cada usuario. Se puede enviar correos de felicitacion utilizando la plantilla de email de cumpleanos configurada.' },
+        { type: 'subtitle', text: 'Pestana: Festividades' },
+        { type: 'paragraph', text: 'Configure las festividades y fechas especiales que desea celebrar en la organizacion. El sistema puede enviar correos automaticos en estas fechas a los colaboradores utilizando la plantilla de email de festividad configurada.' },
+        { type: 'subtitle', text: 'Pestana: Historial' },
+        { type: 'paragraph', text: 'Consulte el historial completo de correos enviados por el sistema. Puede filtrar por fecha, tipo, destinatario y estado de envio (enviado, fallido). Esto incluye correos de credenciales, anuncios, cumpleanos, festividades, etc.' },
+        { type: 'screen', text: 'Pantalla de Comunicaciones con las 4 pestanas: Anuncios, Cumpleanos, Festividades e Historial' },
+        { type: 'tip', text: 'Asegurese de que los datos de nacimiento de los trabajadores esten completos en su ficha para aprovechar la funcion de cumpleanos automaticos.' },
       ]
     },
-    // ===== 15. CAPACITACIONES =====
+    // ===== 14. PLANTILLAS EMAIL =====
+    {
+      id: 'plantillas-email',
+      icon: '&#128233;',
+      title: '14. Plantillas Email',
+      content: [
+        { type: 'paragraph', text: 'El modulo de Plantillas Email permite personalizar las plantillas HTML que el sistema utiliza para enviar correos electronicos automaticos. Accesible desde "Plantillas Email" en el menu lateral.' },
+        { type: 'subtitle', text: 'Tipos de plantillas disponibles' },
+        { type: 'paragraph', text: 'El sistema incluye plantillas para los siguientes tipos de correo:' },
+        { type: 'steps', items: [
+          'Credenciales: Correo enviado cuando se crea un nuevo usuario con sus datos de acceso (email y contrasena).',
+          'Bienvenida: Correo de bienvenida a la organizacion para nuevos trabajadores.',
+          'Cesado: Correo enviado cuando un colaborador deja la organizacion.',
+          'Cumpleanos: Felicitacion automatica por cumpleanos del colaborador.',
+          'Festividad: Correo enviado en fechas festivas configuradas.',
+          'Anuncio: Plantilla utilizada al enviar anuncios por email desde el modulo de Comunicaciones.'
+        ]},
+        { type: 'subtitle', text: 'Editar una plantilla' },
+        { type: 'steps', items: [
+          'Navegue a "Plantillas Email" en el menu lateral.',
+          'Seleccione la plantilla que desea editar de la lista.',
+          'Utilice el editor HTML integrado para modificar el contenido, estilos y estructura del correo.',
+          'Puede usar variables dinamicas (como nombre del usuario, nombre de la empresa, etc.) que se reemplazaran automaticamente al enviar.',
+          'Haga clic en "Guardar" para aplicar los cambios.'
+        ]},
+        { type: 'tip', text: 'Previsualice la plantilla antes de guardar para asegurarse de que el formato y contenido sean los deseados.' },
+        { type: 'warning', text: 'Modifique las plantillas con cuidado. Un error en el HTML puede causar que los correos se muestren incorrectamente a los destinatarios.' },
+        { type: 'screen', text: 'Editor de plantillas de email con lista de plantillas a la izquierda y editor HTML a la derecha' },
+        { type: 'note', text: 'Los correos se envian a traves de Brevo HTTP API. Asegurese de que la configuracion de correo este activa.' },
+      ]
+    },
+    // ===== 15. MIS APROBACIONES =====
+    {
+      id: 'mis-aprobaciones',
+      icon: '&#9989;',
+      title: '15. Mis Aprobaciones',
+      content: [
+        { type: 'paragraph', text: 'El modulo "Mis Aprobaciones" proporciona un acceso rapido y centralizado a todas las evaluaciones de seleccion que estan pendientes de aprobacion por el usuario actual.' },
+        { type: 'subtitle', text: 'Como funciona' },
+        { type: 'steps', items: [
+          'Navegue a "Mis Aprobaciones" en el menu lateral.',
+          'Vera una lista de todas las evaluaciones de seleccion donde usted es aprobador en algun nivel y hay respuestas pendientes de su revision.',
+          'Haga clic en una evaluacion para acceder a su detalle.',
+          'Dentro del detalle, revise las respuestas y puntajes de los postulantes.',
+          'Apruebe o rechace segun corresponda. La evaluacion avanzara al siguiente nivel si es aprobada.'
+        ]},
+        { type: 'note', text: 'Solo aparecen las evaluaciones donde usted ha sido configurado como aprobador en la cadena de aprobacion del modulo de Seleccion.' },
+        { type: 'tip', text: 'Revise frecuentemente este modulo para no retrasar los procesos de seleccion. Las evaluaciones pendientes esperan su accion para avanzar.' },
+        { type: 'screen', text: 'Lista de evaluaciones pendientes de aprobacion con estado, fecha y boton de acceso al detalle' },
+      ]
+    },
+    // ===== 16. CAPACITACIONES =====
     {
       id: 'capacitaciones',
       icon: '&#127891;',
-      title: '15. Capacitaciones',
+      title: '16. Capacitaciones',
       content: [
-        { type: 'paragraph', text: 'El modulo de Capacitaciones permite crear cursos, asignarlos a trabajadores y hacer seguimiento de su progreso.' },
-        { type: 'subtitle', text: 'Crear capacitacion' },
+        { type: 'paragraph', text: 'El modulo de Capacitaciones permite crear cursos, asignarlos a trabajadores y hacer seguimiento de su progreso. Accesible desde "Capacitaciones" en el menu lateral.' },
+        { type: 'subtitle', text: 'Crear capacitacion (admin/trabajador panel)' },
         { type: 'steps', items: [
           'Navegue a "Capacitaciones" en el menu lateral.',
           'Haga clic en "Nueva Capacitacion".',
@@ -565,164 +632,186 @@ export class ManualComponent {
         { type: 'steps', items: [
           'En el detalle de la capacitacion, vaya a la seccion de asignacion.',
           'Seleccione los trabajadores que deben completar la capacitacion.',
-          'Confirme la asignacion. Los trabajadores recibiran notificacion.',
+          'Confirme la asignacion. Los trabajadores recibiran notificacion.'
         ]},
         { type: 'subtitle', text: 'Ver progreso' },
         { type: 'paragraph', text: 'En el listado de capacitaciones puede ver el porcentaje de avance general. Dentro del detalle, puede ver el estado individual de cada trabajador asignado: pendiente, en progreso o completada.' },
+        { type: 'subtitle', text: 'Vista del portal del trabajador' },
+        { type: 'paragraph', text: 'Los trabajadores ven sus capacitaciones desde el portal. Por defecto se muestran solo las capacitaciones pendientes. Un toggle permite alternar para ver tambien las completadas. Las capacitaciones se presentan en un formato simplificado de solo lectura.' },
         { type: 'screen', text: 'Lista de capacitaciones con barra de progreso y detalle mostrando trabajadores asignados con su estado' },
+        { type: 'tip', text: 'Use las capacitaciones para el proceso de onboarding de nuevos trabajadores, asignando cursos de induccion de forma sistematica.' },
       ]
     },
-    // ===== 16. EVALUACION DE DESEMPENO =====
+    // ===== 17. EVALUACION DE DESEMPENO =====
     {
       id: 'eval-desempeno',
       icon: '&#11088;',
-      title: '16. Evaluacion de Desempeno',
+      title: '17. Evaluacion de Desempeno',
       content: [
-        { type: 'paragraph', text: 'Este modulo permite crear evaluaciones de desempeno para trabajadores activos, con criterios personalizados y calificacion por estrellas.' },
+        { type: 'paragraph', text: 'Este modulo permite crear evaluaciones de desempeno para trabajadores activos, con 7 criterios predefinidos y calificacion por estrellas. Accesible desde "Eval. Desempeno" en el menu lateral.' },
         { type: 'subtitle', text: 'Crear evaluacion de desempeno' },
         { type: 'steps', items: [
-          'Navegue a "Evaluacion de Desempeno" en el menu lateral.',
+          'Navegue a "Eval. Desempeno" en el menu lateral.',
           'Haga clic en "Nueva Evaluacion".',
           'Seleccione el trabajador a evaluar.',
           'Defina el periodo de evaluacion.',
-          'Agregue los criterios de evaluacion.'
+          'El sistema presentara los 7 criterios de evaluacion predefinidos.'
         ]},
         { type: 'subtitle', text: 'Criterios y puntajes (estrellas)' },
-        { type: 'paragraph', text: 'Cada criterio se califica usando un sistema de estrellas (1 a 5). Puede agregar multiples criterios como: cumplimiento de objetivos, trabajo en equipo, comunicacion, liderazgo, puntualidad, etc. El sistema calcula automaticamente el promedio general.' },
+        { type: 'paragraph', text: 'Cada evaluacion incluye 7 criterios que se califican usando un sistema de estrellas de 1 a 5. El puntaje total se calcula automaticamente como el promedio de todos los criterios. Los criterios incluyen aspectos como cumplimiento de objetivos, trabajo en equipo, comunicacion, liderazgo, puntualidad, calidad del trabajo, entre otros.' },
+        { type: 'subtitle', text: 'Puntaje auto-calculado' },
+        { type: 'paragraph', text: 'A medida que califica cada criterio con estrellas, el sistema calcula automaticamente el puntaje total promedio. No necesita realizar calculos manuales.' },
         { type: 'subtitle', text: 'Estados de la evaluacion' },
         { type: 'steps', items: [
           'Borrador: La evaluacion esta en proceso de creacion. Puede editarse libremente.',
-          'Enviada: La evaluacion ha sido enviada y esta pendiente de completar por el evaluador.',
+          'Enviada: La evaluacion ha sido enviada y esta pendiente de revision.',
           'Completada: La evaluacion ha sido finalizada. Los resultados son visibles en el legajo del trabajador.'
         ]},
-        { type: 'screen', text: 'Formulario de evaluacion de desempeno con criterios y estrellas de calificacion' },
-        { type: 'tip', text: 'Las evaluaciones de desempeno completadas se reflejan automaticamente en el legajo del trabajador.' },
+        { type: 'subtitle', text: 'Vista del portal del trabajador' },
+        { type: 'paragraph', text: 'Los trabajadores pueden ver sus evaluaciones de desempeno desde el portal en modo solo lectura. Pueden consultar los puntajes obtenidos en cada criterio y el promedio general, pero no pueden modificarlos.' },
+        { type: 'screen', text: 'Formulario de evaluacion de desempeno con 7 criterios y estrellas de calificacion (1-5)' },
+        { type: 'tip', text: 'Las evaluaciones de desempeno completadas se reflejan automaticamente en el legajo del trabajador y pueden consultarse en cualquier momento.' },
       ]
     },
-    // ===== 17. MAESTROS =====
+    // ===== 18. MAESTROS =====
     {
       id: 'maestros',
       icon: '&#128736;',
-      title: '17. Maestros',
+      title: '18. Maestros (Areas y Cargos)',
       content: [
-        { type: 'paragraph', text: 'El modulo de Maestros permite administrar los catalogos base del sistema: Areas y Cargos. Estos catalogos se utilizan en todo el sistema para clasificar usuarios, postulantes y procesos.' },
+        { type: 'paragraph', text: 'El modulo de Maestros permite administrar los catalogos base del sistema: Areas y Cargos. Estos catalogos se utilizan en todo el sistema para clasificar usuarios, postulantes y procesos. Se accede desde "Maestros > Areas" y "Maestros > Cargos" en el menu lateral.' },
         { type: 'subtitle', text: 'Areas' },
+        { type: 'paragraph', text: 'Las areas representan los departamentos de la organizacion. El sistema viene con 15 areas predeterminadas que pueden editarse o complementarse.' },
         { type: 'steps', items: [
-          'Navegue a "Maestros" en el menu lateral y seleccione "Areas".',
+          'Navegue a "Maestros > Areas" en el menu lateral.',
           'Para crear un area nueva, haga clic en "Nueva Area" e ingrese el nombre.',
           'Para editar, haga clic en el icono de edicion junto al area deseada.',
           'Para eliminar, haga clic en el icono de eliminacion. Solo se puede eliminar si no tiene cargos ni usuarios asociados.'
         ]},
         { type: 'subtitle', text: 'Cargos' },
+        { type: 'paragraph', text: 'Los cargos representan los puestos de trabajo dentro de cada area. El sistema viene con 36 cargos predeterminados vinculados a las areas.' },
         { type: 'steps', items: [
-          'Navegue a "Maestros" y seleccione "Cargos".',
+          'Navegue a "Maestros > Cargos" en el menu lateral.',
           'Los cargos estan vinculados a un area. Al crear un cargo, debe seleccionar a que area pertenece.',
           'Para crear un cargo nuevo, haga clic en "Nuevo Cargo", seleccione el area y escriba el nombre del cargo.',
           'Para editar o eliminar, use los iconos de accion correspondientes.'
         ]},
-        { type: 'note', text: 'Los cambios en Areas y Cargos se reflejan inmediatamente en los formularios de creacion de usuarios y postulantes.' },
+        { type: 'note', text: 'Los cambios en Areas y Cargos se reflejan inmediatamente en los formularios de creacion de usuarios y postulantes. Los combos de cargo se filtran automaticamente segun el area seleccionada.' },
+        { type: 'warning', text: 'No elimine areas o cargos que tengan usuarios o postulantes asociados. Reasigne primero a los usuarios antes de eliminar.' },
         { type: 'screen', text: 'Tabla de areas con lista de cargos asociados a cada una y botones de CRUD' },
       ]
     },
-    // ===== 18. CHAT INTERNO =====
+    // ===== 19. CHAT INTERNO =====
     {
       id: 'chat',
       icon: '&#128172;',
-      title: '18. Chat Interno',
+      title: '19. Chat Interno',
       content: [
-        { type: 'paragraph', text: 'El Chat Interno permite comunicacion en tiempo real entre los usuarios del sistema, accesible desde el icono de chat flotante en la esquina inferior de la pantalla.' },
+        { type: 'paragraph', text: 'El Chat Interno permite comunicacion en tiempo real entre los usuarios del sistema. Se accede desde el boton flotante (burbuja) en la esquina inferior derecha de la pantalla, disponible en cualquier seccion del sistema.' },
         { type: 'subtitle', text: 'Iniciar conversacion' },
         { type: 'steps', items: [
-          'Haga clic en el icono de chat flotante (burbuja azul) en la esquina inferior derecha.',
+          'Haga clic en el icono de chat flotante en la esquina inferior derecha.',
           'Se abrira el panel de chat. Haga clic en "Nueva Conversacion".',
           'Seleccione el usuario o usuarios con quienes desea conversar.',
           'Escriba su mensaje y presione Enter o haga clic en "Enviar".'
         ]},
-        { type: 'subtitle', text: 'Enviar mensajes y archivos' },
-        { type: 'paragraph', text: 'Puede enviar mensajes de texto y adjuntar archivos. Para adjuntar un archivo, haga clic en el icono de clip y seleccione el archivo desde su computadora.' },
+        { type: 'subtitle', text: 'Tipos de mensaje' },
+        { type: 'paragraph', text: 'El chat soporta multiples tipos de contenido:' },
+        { type: 'steps', items: [
+          'Mensajes de texto: Escriba y envie mensajes de texto normales.',
+          'Archivos: Adjunte archivos haciendo clic en el icono de clip y seleccionando el archivo desde su computadora.',
+          'Imagenes: Envie imagenes que se previsualizan directamente en la conversacion.'
+        ]},
         { type: 'subtitle', text: 'Conversaciones grupales' },
         { type: 'paragraph', text: 'Puede crear conversaciones con multiples participantes. Todos los miembros del grupo podran ver y responder los mensajes. Ideal para coordinacion de equipos de trabajo.' },
-        { type: 'screen', text: 'Widget de chat abierto mostrando lista de conversaciones a la izquierda y mensajes a la derecha' },
+        { type: 'subtitle', text: 'Conversaciones directas' },
+        { type: 'paragraph', text: 'Las conversaciones directas son entre dos usuarios. Son privadas y solo los dos participantes pueden ver los mensajes.' },
+        { type: 'screen', text: 'Widget de chat flotante abierto mostrando lista de conversaciones a la izquierda y mensajes a la derecha' },
         { type: 'tip', text: 'El chat permanece accesible desde cualquier seccion del sistema. Puede minimizarlo y seguir trabajando sin perder la conversacion.' },
       ]
     },
-    // ===== 19. PORTAL DEL POSTULANTE =====
+    // ===== 20. PORTAL DEL POSTULANTE =====
     {
       id: 'portal-postulante',
       icon: '&#128196;',
-      title: '19. Portal del Postulante',
+      title: '20. Portal del Postulante',
       content: [
-        { type: 'paragraph', text: 'El Portal del Postulante es la interfaz exclusiva para usuarios con rol "postulante". Desde aqui pueden gestionar su informacion personal, responder evaluaciones y subir documentos.' },
-        { type: 'subtitle', text: 'Mi Ficha' },
+        { type: 'paragraph', text: 'El Portal del Postulante es la interfaz exclusiva para usuarios con rol "postulante". Se accede desde "Portal Postulante" en la pagina de inicio. Desde aqui pueden gestionar su informacion personal, responder evaluaciones de seleccion, subir documentos, ver entrevistas y consultar anuncios.' },
+        { type: 'subtitle', text: 'Menu lateral del postulante' },
+        { type: 'paragraph', text: 'El portal del postulante incluye las siguientes secciones en su menu lateral:' },
+        { type: 'steps', items: [
+          'Inicio: Pagina principal del portal con resumen del estado del postulante.',
+          'Mi Ficha: Formulario completo de datos personales organizado en 8 pestanas.',
+          'Seleccion: Evaluaciones/cuestionarios asignados para responder.',
+          'Documentos: Subir documentos requeridos y consultar documentos firmados.',
+          'Entrevistas: Ver entrevistas programadas con fecha, hora y lugar.',
+          'Anuncios: Consultar los anuncios publicados por la organizacion.'
+        ]},
+        { type: 'subtitle', text: 'Mi Ficha (8 pestanas)' },
         { type: 'paragraph', text: 'La ficha personal del postulante esta organizada en 8 pestanas:' },
         { type: 'steps', items: [
-          'Datos Personales: Nombre, apellido, documento de identidad, fecha de nacimiento, genero, estado civil, direccion, telefono, email.',
-          'Formacion Academica: Nivel educativo, institucion, carrera, fecha de inicio y fin.',
+          'Datos Personales: Nombres, apellido paterno, apellido materno, DNI, fecha de nacimiento, genero, estado civil, direccion, telefono, email.',
+          'Formacion: Nivel educativo, institucion, carrera, fecha de inicio y fin.',
           'Experiencia Laboral: Empresas anteriores, cargo, funciones, periodo de trabajo.',
-          'Idiomas: Idiomas que maneja con su nivel de competencia.',
-          'Habilidades: Habilidades tecnicas y blandas relevantes.',
-          'Referencias: Personas de contacto que pueden dar referencias laborales.',
-          'Datos Complementarios: Informacion adicional como disponibilidad, expectativa salarial, etc.',
-          'Foto y CV: Subir foto de perfil y curriculum vitae en formato PDF.'
+          'Idiomas y Habilidades: Idiomas que maneja con su nivel de competencia, y habilidades tecnicas y blandas.',
+          'Referencias: Personas de contacto que pueden dar referencias laborales o personales.',
+          'Expectativas: Disponibilidad, expectativa salarial, modalidad de trabajo y otra informacion complementaria.',
+          'Datos Bancarios: Informacion bancaria (entidad, numero de cuenta, CCI).',
+          'Regimen Pensionario: Informacion del regimen de pensiones (ONP, AFP, etc.).'
         ]},
-        { type: 'note', text: 'Es importante completar todas las pestanas de la ficha para que el perfil sea considerado completo por los evaluadores.' },
-        { type: 'subtitle', text: 'Mis Evaluaciones' },
+        { type: 'note', text: 'Es importante completar todas las pestanas de la ficha para que el perfil sea considerado completo. Los datos se pre-cargan con la informacion registrada al crear el postulante.' },
+        { type: 'subtitle', text: 'Seleccion (responder evaluaciones)' },
         { type: 'steps', items: [
-          'Navegue a "Mis Evaluaciones" en el menu lateral.',
-          'Vera la lista de evaluaciones asignadas con su estado (pendiente, completada).',
+          'Navegue a "Seleccion" en el menu lateral del portal.',
+          'Vera la lista de evaluaciones/cuestionarios asignados con su estado (pendiente, completada).',
           'Haga clic en una evaluacion pendiente para abrirla.',
           'Responda todas las preguntas del cuestionario.',
-          'Haga clic en "Enviar Respuestas" para completar la evaluacion.',
+          'Haga clic en "Enviar Respuestas" para completar la evaluacion.'
         ]},
         { type: 'warning', text: 'Una vez enviadas las respuestas, no podra modificarlas. Revise bien antes de enviar.' },
-        { type: 'subtitle', text: 'Mis Documentos' },
-        { type: 'paragraph', text: 'Desde esta seccion puede subir documentos requeridos como copia de DNI, certificados, antecedentes, etc. Haga clic en "Subir Documento", seleccione el tipo de documento, elija el archivo y confirme la carga.' },
-        { type: 'subtitle', text: 'Mis Entrevistas' },
-        { type: 'paragraph', text: 'Aqui puede ver las entrevistas programadas con fecha, hora y lugar. Las entrevistas son agendadas por el evaluador o administrador y se muestran en orden cronologico.' },
-        { type: 'screen', text: 'Portal del postulante mostrando la ficha personal con pestanas y barra de progreso de completitud' },
+        { type: 'subtitle', text: 'Documentos' },
+        { type: 'paragraph', text: 'Desde esta seccion puede subir documentos requeridos como copia de DNI, certificados, antecedentes, etc. Tambien puede consultar documentos que hayan sido firmados. Haga clic en "Subir Documento", seleccione el tipo de documento, elija el archivo y confirme la carga.' },
+        { type: 'subtitle', text: 'Entrevistas' },
+        { type: 'paragraph', text: 'Aqui puede ver las entrevistas programadas con fecha, hora y lugar. Las entrevistas son agendadas por el administrador o trabajador y se muestran en orden cronologico.' },
+        { type: 'subtitle', text: 'Anuncios' },
+        { type: 'paragraph', text: 'Consulte los anuncios publicados por la organizacion. Los anuncios se muestran ordenados por fecha, del mas reciente al mas antiguo.' },
+        { type: 'screen', text: 'Portal del postulante mostrando la ficha personal con 8 pestanas y menu lateral simplificado' },
       ]
     },
     // ===== 20. PORTAL DEL TRABAJADOR =====
     {
       id: 'portal-trabajador',
       icon: '&#128188;',
-      title: '20. Portal del Trabajador',
+      title: '21. Portal del Trabajador',
       content: [
-        { type: 'paragraph', text: 'El Portal del Trabajador extiende las funcionalidades del Portal del Postulante con modulos adicionales exclusivos para empleados activos de la organizacion.' },
-        { type: 'paragraph', text: 'El trabajador tiene acceso a todo lo mencionado en el Portal del Postulante (Mi Ficha, Mis Evaluaciones, Mis Documentos, Mis Entrevistas) mas las siguientes secciones adicionales:' },
-        { type: 'subtitle', text: 'Firma Digital' },
+        { type: 'paragraph', text: 'El Portal del Trabajador es la interfaz para usuarios con rol "trabajador" cuando acceden desde el portal (no el panel administrativo). Se accede desde "Portal Trabajadores" en la pagina de inicio. Incluye funcionalidades especificas para empleados activos de la organizacion.' },
+        { type: 'subtitle', text: 'Menu lateral del trabajador (portal)' },
+        { type: 'paragraph', text: 'El portal del trabajador incluye las siguientes secciones en su menu lateral:' },
         { type: 'steps', items: [
-          'Navegue a "Firma Digital" en el menu lateral.',
-          'Vera la lista de documentos pendientes de firma.',
-          'Haga clic en un documento para visualizarlo.',
-          'Use el pad de firma tactil/mouse para dibujar su firma.',
-          'Confirme la firma. El documento quedara firmado digitalmente con marca de tiempo.'
+          'Inicio: Pagina principal del portal con resumen y accesos directos.',
+          'Mi Ficha: Formulario completo de datos personales con las mismas 8 pestanas que el postulante (Datos Personales, Formacion, Experiencia Laboral, Idiomas y Habilidades, Referencias, Expectativas, Datos Bancarios, Regimen Pensionario).',
+          'Documentos: Subir y gestionar documentos personales y laborales.',
+          'Derechohabientes: Registrar y gestionar familiares y dependientes (conyuges, hijos, padres).',
+          'Eval. Desempeno: Consultar evaluaciones de desempeno en modo solo lectura (ver puntajes por criterio y promedio general).',
+          'Capacitaciones: Ver capacitaciones asignadas. Por defecto muestra solo las pendientes; un toggle permite ver tambien las completadas.',
+          'Anuncios: Consultar los anuncios publicados por la organizacion.'
         ]},
+        { type: 'subtitle', text: 'Diferencia con el panel administrativo' },
+        { type: 'paragraph', text: 'Los usuarios con rol "trabajador" tienen doble acceso: pueden ingresar al panel administrativo completo (dashboard, gestion de postulantes, seleccion, legajo, embudo, IA insights, admin usuarios, seguridad, configuracion, carga masiva, comunicaciones, plantillas email, capacitaciones, evaluacion de desempeno, mis aprobaciones y maestros) y tambien al portal con funcionalidades de autoservicio. El portal es una interfaz simplificada para gestionar su propia informacion.' },
         { type: 'subtitle', text: 'Derechohabientes' },
-        { type: 'paragraph', text: 'Registre sus familiares y dependientes. Puede agregar: nombre completo, parentesco, fecha de nacimiento, documento de identidad y si es beneficiario de seguro.' },
         { type: 'steps', items: [
-          'Navegue a "Derechohabientes" en el menu lateral.',
+          'Navegue a "Derechohabientes" en el menu lateral del portal.',
           'Haga clic en "Agregar Derechohabiente".',
-          'Complete los datos del familiar.',
-          'Guarde el registro.'
+          'Complete los datos del familiar: nombre, parentesco, fecha de nacimiento, DNI, etc.',
+          'Guarde el registro. Puede agregar multiples derechohabientes.',
+          'Puede editar o eliminar derechohabientes existentes usando los botones de accion.'
         ]},
-        { type: 'subtitle', text: 'Datos Bancarios' },
-        { type: 'paragraph', text: 'Registre su informacion bancaria para el deposito de nomina. Incluye: banco, tipo de cuenta, numero de cuenta y codigo interbancario (CCI).' },
-        { type: 'warning', text: 'Verifique que los datos bancarios sean correctos. Informacion erronea puede causar retrasos en el pago de nomina.' },
-        { type: 'subtitle', text: 'Regimen Pensionario' },
-        { type: 'paragraph', text: 'Seleccione y registre su regimen de pensiones (AFP, ONP u otro segun corresponda). Incluya el tipo de regimen, la entidad administradora y su numero de afiliacion.' },
-        { type: 'subtitle', text: 'Documentos Digitales' },
-        { type: 'paragraph', text: 'Acceda a documentos corporativos compartidos por la empresa: reglamentos, politicas, manuales de procedimientos, etc. Puede visualizarlos y descargarlos.' },
-        { type: 'subtitle', text: 'Capacitaciones' },
-        { type: 'steps', items: [
-          'Navegue a "Capacitaciones" en el menu lateral.',
-          'Vera la lista de capacitaciones asignadas con su estado (pendiente, en progreso, completada).',
-          'Haga clic en una capacitacion para acceder al contenido.',
-          'Complete las actividades requeridas.',
-          'Al finalizar, la capacitacion se marcara como completada automaticamente.'
-        ]},
-        { type: 'screen', text: 'Portal del trabajador mostrando menu lateral con todas las opciones adicionales y contenido principal' },
-        { type: 'tip', text: 'Mantenga actualizada toda su informacion personal, bancaria y de derechohabientes. Esto facilita los procesos administrativos de la empresa.' },
+        { type: 'subtitle', text: 'Evaluacion de Desempeno (vista portal)' },
+        { type: 'paragraph', text: 'Desde el portal, el trabajador puede consultar las evaluaciones de desempeno que le han sido realizadas. La vista es de solo lectura: puede ver los 7 criterios evaluados con su calificacion en estrellas (1-5) y el puntaje promedio calculado automaticamente.' },
+        { type: 'subtitle', text: 'Capacitaciones (vista portal)' },
+        { type: 'paragraph', text: 'El trabajador ve sus capacitaciones asignadas. Por defecto se muestran las capacitaciones pendientes de completar. Un toggle permite alternar para ver tambien las capacitaciones ya completadas.' },
+        { type: 'screen', text: 'Portal del trabajador mostrando el menu lateral con Derechohabientes, Eval. Desempeno y Capacitaciones' },
+        { type: 'tip', text: 'Mantenga actualizada su informacion en Mi Ficha, especialmente los datos bancarios y regimen pensionario, ya que son utilizados para procesos de nomina.' },
       ]
     },
   ];
