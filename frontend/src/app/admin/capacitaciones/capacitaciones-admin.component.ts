@@ -50,7 +50,7 @@ import { environment } from '../../../environments/environment';
           <p class="text-xs text-gray-500 line-clamp-2 flex-1">{{ cap.descripcion || 'Sin descripcion' }}</p>
           <div class="flex items-center justify-between text-xs text-gray-400">
             <span>Limite: {{ cap.fecha_limite | date:'dd/MM/yyyy' }}</span>
-            <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">{{ cap.asignados_count ?? 0 }} asignados</span>
+            <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">{{ cap.asignados ?? 0 }} asignados</span>
           </div>
           <div class="flex items-center gap-1 pt-2 border-t border-gray-100">
             <button (click)="openEditModal(cap)" class="flex-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">Editar</button>
