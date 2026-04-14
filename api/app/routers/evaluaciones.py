@@ -123,7 +123,8 @@ def get_postulantes_evaluacion(
                 .all()
             )
             todos_aprobados = all(a.estado == "aprobado" for a in anteriores) if anteriores else True
-            if todos_aprobados:
+            # No mostrar como aprobador activo si el postulante ya fue rechazado
+            if todos_aprobados and postulante.estado != "Rechazado":
                 is_active_approver = True
                 aprobador_id = mi_aprobador.id
 
@@ -441,12 +442,23 @@ def submit_evaluacion(
     ep.estado = "completada"
     ep.fecha_completado = datetime.now(timezone.utc)
 
-    # Si desaprobó, cambiar estado del postulante a "Rechazado"
+    # Si desaprobó, cambiar estado del postulante a "Rechazado" y cancelar aprobadores
     if not aprobado:
         postulante = db.query(Postulante).filter(Postulante.id == ep.postulante_id).first()
         if postulante and postulante.estado == "En Evaluacion":
             postulante.estado = "Rechazado"
             postulante.comentarios = f"Desaprobó evaluación '{evaluacion.nombre}' con {score}% (mínimo: {puntaje_minimo}%)"
+
+        # Marcar todos los aprobadores pendientes como "omitido"
+        from ..models.aprobador import AprobadorPostulante
+        from sqlalchemy import or_
+        db.query(AprobadorPostulante).filter(
+            or_(
+                AprobadorPostulante.postulante_id == ep.postulante_id,
+                AprobadorPostulante.evaluacion_id == ep.evaluacion_id,
+            ),
+            AprobadorPostulante.estado == "pendiente",
+        ).update({"estado": "omitido", "comentario": f"Postulante desaprobó con {score}%"}, synchronize_session=False)
 
     db.commit()
 
