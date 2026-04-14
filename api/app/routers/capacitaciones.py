@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Optional
 
 from ..models.database import get_db
 from ..models.usuario import Usuario
 from ..models.capacitacion import Capacitacion, CapacitacionTrabajador
-from ..models.postulante import Postulante
 from ..auth.dependencies import require_role
 from ..schemas.capacitacion import CapacitacionCreate
 
@@ -27,7 +27,21 @@ def listar_capacitaciones(
         .limit(limit)
         .all()
     )
-    return capacitaciones
+    result = []
+    for cap in capacitaciones:
+        count = db.query(func.count(CapacitacionTrabajador.id)).filter(
+            CapacitacionTrabajador.capacitacion_id == cap.id
+        ).scalar() or 0
+        result.append({
+            "id": cap.id,
+            "nombre": cap.nombre,
+            "descripcion": cap.descripcion,
+            "fecha_limite": cap.fecha_limite,
+            "obligatoria": cap.obligatoria,
+            "fecha_creacion": cap.fecha_creacion,
+            "asignados": count,
+        })
+    return result
 
 
 @router.post("/")
@@ -142,18 +156,18 @@ def listar_trabajadores_capacitacion(
         raise HTTPException(status_code=404, detail="Capacitacion no encontrada")
 
     asignaciones = (
-        db.query(CapacitacionTrabajador, Postulante)
-        .join(Postulante, CapacitacionTrabajador.trabajador_id == Postulante.id)
+        db.query(CapacitacionTrabajador, Usuario)
+        .join(Usuario, CapacitacionTrabajador.trabajador_id == Usuario.id)
         .filter(CapacitacionTrabajador.capacitacion_id == capacitacion_id)
         .all()
     )
 
     result = []
-    for ct, postulante in asignaciones:
+    for ct, usuario in asignaciones:
         result.append({
             "id": ct.id,
             "trabajador_id": ct.trabajador_id,
-            "nombre": postulante.nombre,
+            "nombre": usuario.nombre,
             "cumplimiento": ct.cumplimiento,
             "fecha_completado": ct.fecha_completado,
             "certificado_url": ct.certificado_url,
