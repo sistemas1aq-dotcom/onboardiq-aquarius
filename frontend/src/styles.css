@@ -4,8 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@font-face {
+  font-family: 'Hind';
+  src: url('/assets/fonts/Hind-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-family: 'Hind', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

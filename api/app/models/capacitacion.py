@@ -19,7 +19,7 @@ class CapacitacionTrabajador(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     capacitacion_id = Column(Integer, ForeignKey("capacitaciones.id"), nullable=False)
-    trabajador_id = Column(Integer, ForeignKey("postulantes.id"), nullable=False)
+    trabajador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     cumplimiento = Column(Integer, default=0)
     fecha_completado = Column(DateTime)
     certificado_url = Column(String(500))
